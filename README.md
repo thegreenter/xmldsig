@@ -1,84 +1,77 @@
-#xmlseclibs 
+# XmlDSig - Facturación Electrónica (SUNAT-PE)
+[![Build Status](https://api.travis-ci.org/giansalex/xmldsig.svg?branch=master)](https://api.travis-ci.org/giansalex/xmldsig)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bebcd8e55eac4e409525b2d7fb98f269)](https://www.codacy.com/app/giansalex/xmldsig?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=giansalex/xmldsig&amp;utm_campaign=Badge_Grade)
 
-xmlseclibs is a library written in PHP for working with XML Encryption and Signatures.
+Esta libreria se emplea para firmar documentos electronicos segun las normas de SUNAT.
 
-The author of xmlseclibs is Rob Richards.
+Se requiere convertir el certificado .PFX a .PEM, aqui un herramienta para convertirlo:  
+https://www.sslshopper.com/ssl-converter.html
 
-# Branches
-Both the master and the 2.0 branches are actively maintained. The 1.4 branch is only updated for security related issues.
-* master: Removes mcrypt usage requiring 5.6+ (5.6.24+ recommended for security reasons)
-* 2.0: Contains namespace support requiring 5.3+
-* 1.4: Contains auto-loader support while also maintaining backwards compatiblity with the older 1.3 version using the xmlseclibs.php file. Supports PHP 5.2+
+**Install for Composer:**
 
-# Requirements
+        composer require giansalex/xmldsig
 
-xmlseclibs requires PHP version 5.6 or greater.
-
-
-## How to Install
-
-Install with [`composer.phar`](http://getcomposer.org).
-
-```sh
-php composer.phar require "robrichards/xmlseclibs"
-```
-
-
-## Use cases
-
-xmlseclibs is being used in many different software.
-
-* [SimpleSAMLPHP](https://github.com/simplesamlphp/simplesamlphp)
-* [LightSAML](https://github.com/lightsaml/lightsaml)
-* [OneLogin](https://github.com/onelogin/php-saml)
-
-## Basic usage
-
-The example below shows basic usage of xmlseclibs, with a SHA-256 signature.
-
+        
+**Ejemplo:**
 ```php
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
+require 'vendor/autoload.php';
 
-// Load the XML to be signed
-$doc = new DOMDocument();
-$doc->load('./path/to/file/tobesigned.xml');
+using RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
 
-// Create a new Security object 
-$objDSig = new XMLSecurityDSig();
-// Use the c14n exclusive canonicalization
-$objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
-// Sign using SHA-256
-$objDSig->addReference(
-    $doc, 
-    XMLSecurityDSig::SHA256, 
-    array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
-);
+$xmlPath = 'path-dir/20600995805-01-F001-1.xml';
+$certPath = 'path-dir/SFSCert.pem'; // Convertir pfx to pem 
 
-// Create a new (private) Security key
-$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
-/*
-If key has a passphrase, set it using
-$objKey->passphrase = '<passphrase>';
-*/
-// Load the private key
-$objKey->loadKey('./path/to/privatekey.pem', TRUE);
+$xmlDocument = new DOMDocument();
+$xmlDocument->load($xmlPath);
 
-// Sign the XML file
-$objDSig->sign($objKey);
+$xmlTool = new SunatXmlSecAdapter();
+$xmlTool->setPrivateKey(file_get_contents($certPath));
+$xmlTool->setCanonicalMethod(SunatXmlSecAdapter::XML_C14N);
+$xmlTool->addTransform(SunatXmlSecAdapter::ENVELOPED);
+$xmlTool->setPublicKey(file_get_contents('certifacdo.cer'));
 
-// Add the associated public key to the signature
-$objDSig->add509Cert(file_get_contents('./path/to/file/mycert.pem'));
+$xmlTool->sign($xmlDocument);
 
-// Append the signature to the XML
-$objDSig->appendSignature($doc->documentElement);
-// Save the signed XML
-$doc->save('./path/to/signed.xml');
+header('Content-Type: text/xml');
+echo $xmlDocument->saveXML();
 ```
 
-## How to Contribute
+**Resultado**  
 
-* [Open Issues](https://github.com/robrichards/xmlseclibs/issues)
-* [Open Pull Requests](https://github.com/robrichards/xmlseclibs/pulls)
+Before:
+```xml
+<ext:UBLExtension>
+<ext:ExtensionContent></ext:ExtensionContent>
+</ext:UBLExtension>
+```
 
-Mailing List: https://groups.google.com/forum/#!forum/xmlseclibs
+After:
+```xml
+<ext:UBLExtension>
+<ext:ExtensionContent>
+<ds:Signature>
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>IwJuNQGQaHmmm3iv2jj8JDv70Ow=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+nLaghokzMNrmrfPnbIg9b........wzZ2CgLTVjW1UiLFwZXXXPUlf2o=
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIFhzCCA3OgAwI....gMOi
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+</ds:Signature>
+</ext:ExtensionContent>
+</ext:UBLExtension>
+```

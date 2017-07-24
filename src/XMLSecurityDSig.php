@@ -67,7 +67,7 @@ class XMLSecurityDSig
   </ds:SignedInfo>
 </ds:Signature>';
 
-    const BASE_TEMPLATE = '<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+    const BASE_TEMPLATE = '<Signature Id="SignIMM" xmlns="http://www.w3.org/2000/09/xmldsig#">
   <SignedInfo>
     <SignatureMethod />
   </SignedInfo>

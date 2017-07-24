@@ -1,14 +1,15 @@
 {
-  "name": "robrichards/xmlseclibs",
-  "description": "A PHP library for XML Security",
-  "license": "BSD-3-Clause",
+  "name": "giansalex/xmldsig",
+  "description": "Herramienta para Firmar XML segun normativa de SUNAT para Facturación Electrónica",
+  "license": "BSD-2-Clause",
   "keywords": [
     "xml",
     "xmldsig",
     "signature",
-    "security"
+    "security",
+    "sunat"
   ],
-  "homepage": "https://github.com/robrichards/xmlseclibs",
+  "homepage": "https://github.com/robrichards/xmldsig",
   "autoload": {
     "psr-4": {
       "RobRichards\\XMLSecLibs\\": "src"
