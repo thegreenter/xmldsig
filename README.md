@@ -16,7 +16,7 @@ https://www.sslshopper.com/ssl-converter.html
 ```php
 require 'vendor/autoload.php';
 
-using RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
+use RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
 
 $xmlPath = 'path-dir/20600995805-01-F001-1.xml';
 $certPath = 'path-dir/SFSCert.pem'; // Convertir pfx to pem 
