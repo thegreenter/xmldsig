@@ -4,7 +4,7 @@
   <Value>
 	Hello, World!
   </Value>
-<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:Signature Id="SignIMM" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
     <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
   <ds:Reference URI=""><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>scTXEJcKZm9Mb0ldX7LSRbAKY8g=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>PPLIDY06BN4S1id0RjI+kqmPzGZN0Xl+sPESrqau3ljA4/IikzIjS34gzbK8he+ata4PO9oa73AFuNhbQ3rZdtggZ78M0xLva8SShOzakJuaIU7bC4n2E8HHGl257mkLDAdLKxlxL07nlIngJgLIIHGL4lcMzZVgTPAiu29uusDgK2EZJB/HvnAOrKpnZ/t25hiDbh/vWi0ot7XuziYY2rvPbH9Tj/hpGGIEoHrA3menrfIj4yOPdKSsVMM5ttkuT6nZ1WL1GzMoV1eoZbQOPJOu+cEQIlD9+xrrpCrxnog9xEv9TqMrmJrIm7lMxJ7e3Jn9EQ0aPqIsFkBf2OgVoA==</ds:SignatureValue>

@@ -4,7 +4,7 @@
   <Value>
 	Hello, World!
   </Value>
-<pfx:Signature xmlns:pfx="http://www.w3.org/2000/09/xmldsig#">
+<pfx:Signature Id="SignIMM" xmlns:pfx="http://www.w3.org/2000/09/xmldsig#">
   <pfx:SignedInfo><pfx:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
     <pfx:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
   <pfx:Reference><pfx:Transforms><pfx:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></pfx:Transforms><pfx:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><pfx:DigestValue>scTXEJcKZm9Mb0ldX7LSRbAKY8g=</pfx:DigestValue></pfx:Reference></pfx:SignedInfo><pfx:SignatureValue>WWT71vbIV6YLBk8fRzZFY3vLiCGuFTh0eh/A158/tOHKR/5qDNkwZ2DRslG0nAFfle0qz41fpnkjniR5gnbcAX/BCDTi/TFdVOiHGUzH3Erb9fFnFFUEoRSh/ZWYyNlBQERmrsnX8tr9mP6IfpTy01yq+tFeiU6jj9TSkst5Bwa74Wn2sXs1OxpsswhUCAsKRdNf0KGLeHGM00RIBD8ep5bKLmFn8WTvPmDBJloyxMQxD0qLKT8qZWoka/qX0JUE+Q2FNsCkGZ69H8/e8/zzXJSOHu/A22r5VrAGisTwLl2g3128/hOvtuMvOAXNotHKFxSt52kDLAfVCWLPCMNRhA==</pfx:SignatureValue>
