@@ -26,8 +26,6 @@ $xmlDocument->load($xmlPath);
 
 $xmlTool = new SunatXmlSecAdapter();
 $xmlTool->setPrivateKey(file_get_contents($certPath));
-$xmlTool->setCanonicalMethod(SunatXmlSecAdapter::XML_C14N);
-$xmlTool->addTransform(SunatXmlSecAdapter::ENVELOPED);
 $xmlTool->setPublicKey(file_get_contents($certPath));
 
 $xmlTool->sign($xmlDocument);
@@ -52,7 +50,7 @@ After:
 <ext:UBLExtensions>
     <ext:UBLExtension>
         <ext:ExtensionContent>
-            <ds:Signature>
+            <ds:Signature Id="SignIMM">
                 <ds:SignedInfo>
                     <ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
                     <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
@@ -65,12 +63,12 @@ After:
                     </ds:Reference>
                 </ds:SignedInfo>
                 <ds:SignatureValue>
-                nLaghokzMNrmrfPnbIg9b........wzZ2CgLTVjW1UiLFwZXXXPUlf2o=
+                nLaghokzMNrmrfPnbIg9b........wzZ2CgLTVjWQUAQ4wDAYDVQQIEwVNYWluZTE1UiLFwZXXXPUlf2o=
                 </ds:SignatureValue>
                 <ds:KeyInfo>
                     <ds:X509Data>
                         <ds:X509Certificate>
-                        MIIFhzCCA3OgAwI....gMOi
+                        MIIFhzCCA3OgAwI......MIIEVDCCAzygAwIBAgIJAPTrkMJbCOr1MA0GCSqGSIb3DQEBBQUAMHkxCzAJBgNVBAYTAlVTVQQIEwVNYWluZTEgMOiRJ00nE=
                         </ds:X509Certificate>
                     </ds:X509Data>
                 </ds:KeyInfo>

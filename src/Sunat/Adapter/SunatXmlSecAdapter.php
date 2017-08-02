@@ -3,7 +3,6 @@
 namespace RobRichards\XMLSecLibs\Sunat\Adapter;
 
 use DOMDocument;
-use DOMNode;
 use RobRichards\XMLSecLibs\XMLSecEnc;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
@@ -35,7 +34,7 @@ class SunatXmlSecAdapter implements AdapterInterface
      *
      * @var string
      */
-    protected $keyAlgorithm = self::RSA_SHA1;
+    protected $keyAlgorithm = XMLSecurityKey::RSA_SHA1;
 
     /**
      * Digest algorithm URI. By default SHA1.
@@ -44,7 +43,7 @@ class SunatXmlSecAdapter implements AdapterInterface
      *
      * @see AdapterInterface::SHA1
      */
-    protected $digestAlgorithm = self::SHA1;
+    protected $digestAlgorithm = XMLSecurityDSig::SHA1;
 
     /**
      * Canonical algorithm URI. By default C14N.
@@ -53,57 +52,47 @@ class SunatXmlSecAdapter implements AdapterInterface
      *
      * @see AdapterInterface::XML_C14N
      */
-    protected $canonicalMethod = self::XML_C14N;
+    protected $canonicalMethod = XMLSecurityDSig::C14N;
 
     /**
-     * Transforms list.
-     *
-     * @var array
-     *
-     * @see AdapterInterface::ENVELOPED
+     * @inheritdoc
      */
-    protected $transforms = [];
-
-    public function setPrivateKey($privateKey, $algorithmType = self::RSA_SHA1)
+    public function setPrivateKey($privateKey)
     {
         $this->privateKey = $privateKey;
-        $this->keyAlgorithm = $algorithmType;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function setPublicKey($publicKey)
     {
         $this->publicKey = $publicKey;
     }
 
-    public function getPublicKey(DOMNode $dom = null)
+    /**
+     * @inheritdoc
+     */
+    public function getPublicKey(DOMDocument $doc = null)
     {
-        if ($dom) {
-            $this->setPublicKeyFromNode($dom);
+        if ($doc) {
+            $this->setPublicKeyFromNode($doc);
         }
 
         return $this->publicKey;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getKeyAlgorithm()
     {
         return $this->keyAlgorithm;
     }
 
-    public function setDigestAlgorithm($algorithmType = self::SHA1)
-    {
-        $this->digestAlgorithm = $algorithmType;
-    }
-
-    public function setCanonicalMethod($methodType = self::XML_C14N)
-    {
-        $this->canonicalMethod = $methodType;
-    }
-
-    public function addTransform($transformType)
-    {
-        $this->transforms[] = $transformType;
-    }
-
+    /**
+     * @inheritdoc
+     */
     public function sign(DOMDocument $data)
     {
         if (null === $this->privateKey) {
@@ -122,7 +111,7 @@ class SunatXmlSecAdapter implements AdapterInterface
 
         $objXMLSecDSig = $this->createXmlSecurityDSig();
         $objXMLSecDSig->setCanonicalMethod($this->canonicalMethod);
-        $objXMLSecDSig->addReference($data, $this->digestAlgorithm, $this->transforms, ['force_uri' => true]);
+        $objXMLSecDSig->addReference($data, $this->digestAlgorithm, [self::ENVELOPED], ['force_uri' => true]);
         $objXMLSecDSig->sign($objKey, $this->getNodeSign($data));
 
         /* Add associated public key */
@@ -131,6 +120,9 @@ class SunatXmlSecAdapter implements AdapterInterface
         }
     }
 
+    /**
+     * @inheritdoc
+     */
     public function verify(DOMDocument $data)
     {
         $objKey = null;
@@ -152,7 +144,7 @@ class SunatXmlSecAdapter implements AdapterInterface
 
             XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
             $this->publicKey = $objKey->getX509Certificate();
-            $this->keyAlgorithm = $objKey->getAlgorith();
+            $this->keyAlgorithm = $objKey->getAlgorithm();
         }
 
         if (!$objKey) {
@@ -198,15 +190,15 @@ class SunatXmlSecAdapter implements AdapterInterface
      * @see publicKey
      * @see keyAlgorithm
      *
-     * @param DOMNode $dom
+     * @param DOMDocument $doc
      *
      * @return bool `true` If public key was extracted or `false` if cannot be possible
      */
-    protected function setPublicKeyFromNode(DOMNode $dom)
+    protected function setPublicKeyFromNode(DOMDocument $doc)
     {
         // try to get the public key from the certificate
         $objXMLSecDSig = $this->createXmlSecurityDSig();
-        $objDSig = $objXMLSecDSig->locateSignature($dom);
+        $objDSig = $objXMLSecDSig->locateSignature($doc);
         if (!$objDSig) {
             return false;
         }
@@ -218,7 +210,7 @@ class SunatXmlSecAdapter implements AdapterInterface
 
         XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
         $this->publicKey = $objKey->getX509Certificate();
-        $this->keyAlgorithm = $objKey->getAlgorith();
+        $this->keyAlgorithm = $objKey->getAlgorithm();
 
         return true;
     }
