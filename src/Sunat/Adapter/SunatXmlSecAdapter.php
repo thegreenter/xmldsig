@@ -54,6 +54,45 @@ class SunatXmlSecAdapter implements AdapterInterface
      */
     protected $canonicalMethod = XMLSecurityDSig::C14N;
 
+
+    /**
+     * Firma el contenido del xml y retorna el contenido firmado.
+     *
+     * @param string $content
+     * @return string
+     */
+    public function signXml($content)
+    {
+        $doc = $this->getDocXml($content);
+
+        $this->sign($doc);
+        return $doc->saveXML();
+    }
+
+    /**
+     * Verifica la firma del xml.
+     *
+     * @param string $content
+     * @return bool
+     */
+    public function verifyXml($content)
+    {
+        $doc = $this->getDocXml($content);
+        $this->getPublicKey($doc);
+
+        return $this->verify($doc);
+    }
+
+    /**
+     * Set certificated in PEM format
+     * @param string $cert
+     */
+    public function setCertificate($cert)
+    {
+        $this->setPrivateKey($cert);
+        $this->setPublicKey($cert);
+    }
+
     /**
      * @inheritdoc
      */
@@ -236,5 +275,17 @@ class SunatXmlSecAdapter implements AdapterInterface
         }
 
         return $nodeSign;
+    }
+
+    /**
+     * @param string $content
+     * @return \DOMDocument
+     */
+    private function getDocXml($content)
+    {
+        $doc = new \DOMDocument();
+        $doc->loadXML($content);
+
+        return $doc;
     }
 }
