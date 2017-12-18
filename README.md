@@ -4,7 +4,7 @@
 
 Esta libreria se emplea para firmar documentos electronicos segun las normas de SUNAT.
 
-Se requiere convertir el certificado .PFX a .PEM, aqui un herramienta para convertirlo:  
+Se requiere convertir el certificado .PFX a .PEM, aqui una herramienta online para convertirlo:  
 https://www.sslshopper.com/ssl-converter.html
 
 **Install for Composer:**
