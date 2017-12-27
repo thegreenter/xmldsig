@@ -21,7 +21,7 @@ $enc = new XMLSecEnc();
 $enc->setNode($dom->documentElement);
 $enc->encryptKey($siteKey, $objKey);
 
-$enc->type = XMLSecEnc::Element;
+$enc->type = XMLSecEnc::ELEMENT;
 $encNode = $enc->encryptNode($objKey, FALSE);
 
 $newData = $dom->saveXML();
