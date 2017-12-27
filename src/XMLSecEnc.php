@@ -55,8 +55,8 @@ class XMLSecEnc
    </xenc:CipherData>
 </xenc:EncryptedData>";
 
-    const ELEMENT = 'http://www.w3.org/2001/04/xmlenc#ELEMENT';
-    const CONTENT = 'http://www.w3.org/2001/04/xmlenc#CONTENT';
+    const ELEMENT = 'http://www.w3.org/2001/04/xmlenc#Element';
+    const CONTENT = 'http://www.w3.org/2001/04/xmlenc#Content';
     const URI = 3;
     const XMLENCNS = 'http://www.w3.org/2001/04/xmlenc#';
 
