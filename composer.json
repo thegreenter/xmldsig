@@ -9,7 +9,7 @@
     "security",
     "sunat"
   ],
-  "homepage": "https://github.com/robrichards/xmldsig",
+  "homepage": "https://github.com/giansalex/xmldsig",
   "autoload": {
     "psr-4": {
       "RobRichards\\XMLSecLibs\\": "src"
@@ -19,6 +19,6 @@
     "php": ">= 5.6"
    },
   "suggest": {
-    "ext-openssl": "OpenSSL extension"
+    "ext-openssl": "*"
   }
 }
