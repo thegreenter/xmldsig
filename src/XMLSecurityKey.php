@@ -692,14 +692,6 @@ class XMLSecurityKey
     }
 
     /**
-     * @param mixed $parent
-     */
-    public function serializeKey($parent)
-    {
-
-    }
-
-    /**
      * Retrieve the X509 certificate this key represents.
      *
      * Will return the X509 certificate in PEM-format if this key represents

@@ -182,11 +182,8 @@ class XMLSecurityDSig
      */
     public function locateSignature($objDoc, $pos=0)
     {
-        if ($objDoc instanceof DOMDocument) {
-            $doc = $objDoc;
-        } else {
-            $doc = $objDoc->ownerDocument;
-        }
+        $doc = $objDoc instanceof DOMDocument ? $objDoc : $objDoc->ownerDocument;
+
         if ($doc) {
             $xpath = new DOMXPath($doc);
             $xpath->registerNamespace('secdsig', self::XMLDSIGNS);
@@ -195,6 +192,7 @@ class XMLSecurityDSig
             $this->sigNode = $nodeset->item($pos);
             return $this->sigNode;
         }
+
         return null;
     }
 
@@ -854,15 +852,6 @@ class XMLSecurityDSig
     public function appendCert()
     {
 
-    }
-
-    /**
-     * @param XMLSecurityKey $objKey
-     * @param null|DOMNode $parent
-     */
-    public function appendKey($objKey, $parent=null)
-    {
-        $objKey->serializeKey($parent);
     }
 
 
