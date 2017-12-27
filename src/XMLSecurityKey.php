@@ -393,6 +393,7 @@ class XMLSecurityKey
      *
      * @param string $data
      * @return string
+     * @throws Exception
      */
     private function encryptSymmetric($data)
     {
@@ -410,6 +411,7 @@ class XMLSecurityKey
      *
      * @param string $data
      * @return string
+     * @throws Exception
      */
     private function decryptSymmetric($data)
     {
@@ -448,7 +450,7 @@ class XMLSecurityKey
     private function decryptPublic($data)
     {
         if (! openssl_public_decrypt($data, $decrypted, $this->key, $this->cryptParams['padding'])) {
-            throw new Exception('Failure decrypting Data (openssl public) - ' . openssl_error_string);
+            throw new Exception('Failure decrypting Data (openssl public) - ' . openssl_error_string());
         }
         return $decrypted;
     }
@@ -478,7 +480,7 @@ class XMLSecurityKey
     private function decryptPrivate($data)
     {
         if (! openssl_private_decrypt($data, $decrypted, $this->key, $this->cryptParams['padding'])) {
-            throw new Exception('Failure decrypting Data (openssl private) - ' . openssl_error_string);
+            throw new Exception('Failure decrypting Data (openssl private) - ' . openssl_error_string());
         }
         return $decrypted;
     }
@@ -532,6 +534,7 @@ class XMLSecurityKey
      *
      * @param string $data
      * @return mixed|string
+     * @throws Exception
      */
     public function encryptData($data)
     {
@@ -545,6 +548,8 @@ class XMLSecurityKey
                     return $this->encryptPrivate($data);
             }
         }
+
+        return '';
     }
 
     /**
@@ -552,6 +557,7 @@ class XMLSecurityKey
      *
      * @param string $data
      * @return mixed|string
+     * @throws Exception
      */
     public function decryptData($data)
     {
@@ -565,6 +571,8 @@ class XMLSecurityKey
                     return $this->decryptPrivate($data);
             }
         }
+
+        return '';
     }
 
     /**
@@ -572,6 +580,7 @@ class XMLSecurityKey
      *
      * @param string $data
      * @return mixed|string
+     * @throws Exception
      */
     public function signData($data)
     {
@@ -581,6 +590,8 @@ class XMLSecurityKey
             case (self::HMAC_SHA1):
                 return hash_hmac("sha1", $data, $this->key, true);
         }
+
+        return '';
     }
 
     /**
@@ -598,6 +609,8 @@ class XMLSecurityKey
                 $expectedSignature = hash_hmac("sha1", $data, $this->key, true);
                 return strcmp($signature, $expectedSignature) == 0;
         }
+
+        return '';
     }
 
     /**

@@ -356,6 +356,7 @@ class XMLSecurityDSig
      * @param $refNode
      * @param string $data
      * @return bool
+     * @throws Exception
      */
     public function validateDigest($refNode, $data)
     {
@@ -460,8 +461,9 @@ class XMLSecurityDSig
     }
 
     /**
-     * @param DOMNode $refNode
+     * @param DOMElement $refNode
      * @return bool
+     * @throws Exception
      */
     public function processRefNode($refNode)
     {
@@ -529,7 +531,7 @@ class XMLSecurityDSig
     }
 
     /**
-     * @param DOMNode $refNode
+     * @param DOMElement $refNode
      * @return null
      */
     public function getRefNodeID($refNode)
@@ -603,6 +605,7 @@ class XMLSecurityDSig
      * @param string $algorithm
      * @param null|array $arTransforms
      * @param null|array $options
+     * @throws Exception
      */
     private function addRefInternal($sinfoNode, $node, $algorithm, $arTransforms=null, $options=null)
     {
@@ -686,6 +689,7 @@ class XMLSecurityDSig
      * @param string $algorithm
      * @param null|array $arTransforms
      * @param null|array $options
+     * @throws Exception
      */
     public function addReference($node, $algorithm, $arTransforms=null, $options=null)
     {
@@ -703,6 +707,7 @@ class XMLSecurityDSig
      * @param string $algorithm
      * @param null|array $arTransforms
      * @param null|array $options
+     * @throws Exception
      */
     public function addReferenceList($arNodes, $algorithm, $arTransforms=null, $options=null)
     {
@@ -806,6 +811,7 @@ class XMLSecurityDSig
      * @param XMLSecurityKey $objKey
      * @param string $data
      * @return mixed|string
+     * @throws Exception
      */
     public function signData($objKey, $data)
     {
@@ -815,6 +821,7 @@ class XMLSecurityDSig
     /**
      * @param XMLSecurityKey $objKey
      * @param null|DOMNode $appendToNode
+     * @throws Exception
      */
     public function sign($objKey, $appendToNode = null)
     {
@@ -1067,6 +1074,7 @@ class XMLSecurityDSig
      * @param bool $isPEMFormat
      * @param bool $isURL
      * @param null|array $options
+     * @throws Exception
      */
     public function add509Cert($cert, $isPEMFormat=true, $isURL=false, $options=null)
     {

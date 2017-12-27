@@ -232,6 +232,7 @@ class SunatXmlSecAdapter implements AdapterInterface
      * @param DOMDocument $doc
      *
      * @return bool `true` If public key was extracted or `false` if cannot be possible
+     * @throws \Exception
      */
     protected function setPublicKeyFromNode(DOMDocument $doc)
     {
