@@ -7,11 +7,15 @@ Esta libreria se emplea para firmar documentos electronicos segun las normas de 
 Se requiere convertir el certificado .PFX a .PEM, aqui una herramienta online para convertirlo:  
 https://www.sslshopper.com/ssl-converter.html
 
-**Install for Composer:**
+## Install:
 
-        composer require giansalex/xmldsig
-    
-**Ejemplo:**
+Install using Composer from [packagist](https://packagist.org/packages/giansalex/xmldsig).  
+
+```bash
+composer require giansalex/xmldsig
+```
+
+## Ejemplo
 ```php
 
 use RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
@@ -34,7 +38,7 @@ header('Content-Type: text/xml');
 echo $xmlDocument->saveXML();
 ```
 
-**Resultado**  
+**Resultado:**  
 
 Before:
 ```xml
