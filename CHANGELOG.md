@@ -1,14 +1,18 @@
-xmlseclibs.php
-|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-??, ??? 2017, 3.0.1
+# xmlseclibs
+
+## 27, Dec 2017, 3.0.3
+Improvements:
+- Implement Sunat Sign
+
+## ??, 2017, 3.0.1
 Improvements:
 - Add OneLogin to supported software
 
-25, May 2017, 3.0.0
+## 25, May 2017, 3.0.0
 Improvements:
 - Remove use of mcrypt (skymeyer)
 
-08, Sep 2016, 2.0.1
+## 08, Sep 2016, 2.0.1
 Bug Fixes:
 - Strip whitespace characters when parsing X509Certificate. fixes #84
   (klemen.bratec)
@@ -21,14 +25,14 @@ Improvements:
 - Update lightSAML link. (Milos Tomic)
 - Update copyright dates.
 
-31, Jul 2015, 2.0.0
+## 31, Jul 2015, 2.0.0
 Features:
 - Namespace support. Classes now in the RobRichards\XMLSecLibs\ namespace.
 
 Improvements:
 - Dropped support for PHP 5.2
 
-31, Jul 2015, 1.4.1
+## 31, Jul 2015, 1.4.1
 Bug Fixes:
 - Allow for large digest values that may have line breaks. fixes #62
 
@@ -42,7 +46,7 @@ Improvements:
 - Code cleanup
 - Depreciated XMLSecurityDSig::generate_GUID for XMLSecurityDSig::generateGUID
 
-23, Jun 2015, 1.4.0
+## 23, Jun 2015, 1.4.0
 Features:
 - Support for PSR-0 standard.
 - Support for X509SubjectName. (Milos Tomic)
@@ -54,7 +58,7 @@ Improvements:
 - Normalilze tests. (Hidde Wieringa)
 - Add basic usage to README. (Hidde Wieringa)
 
-21, May 2015, 1.3.2
+## 21, May 2015, 1.3.2
 Bug Fixes:
 - Fix Undefined variable notice. (dpieper85)
 - Fix typo when setting MimeType attribute. (Eugene OZ)
@@ -64,7 +68,7 @@ Features:
 - canonicalizeData performance optimization. (Jaime Pérez)
 - Add composer support (Maks3w)
 
-19, Jun 2013, 1.3.1
+## 19, Jun 2013, 1.3.1
 Features:
 - return encrypted node from XMLSecEnc::encryptNode() when replace is set to 
   false. (Olav)
@@ -79,7 +83,7 @@ Improvements:
 - Add LICENSE file
 - Convert CHANGELOG.txt to UTF-8
 
-26, Sep 2011, 1.3.0
+## 26, Sep 2011, 1.3.0
 Features:
 - Add param to append sig to node when signing. Fixes a problem when using 
   inclusive canonicalization to append a signature within a namespaced subtree.
@@ -102,7 +106,7 @@ Bug Fixes:
 - Make sure that the elements in EncryptedData are emitted in the correct 
   sequence.
 
-11 Jan 2010, 1.2.2
+## 11 Jan 2010, 1.2.2
 Features:
 - Add support XPath support when creating signature. Provides support for 
   working with EBXML documents.
@@ -115,7 +119,7 @@ Bug Fixes:
   content (patch by Francois Wang)
 
 
-08 Jul 2008, 1.2.1
+## 08 Jul 2008, 1.2.1
 Features:
 - Attempt to use mhash when hash extension is not present. (Alfredo Cubitos).
 - Add fallback to built-in sha1 if both hash and mhash are not available and 
@@ -133,17 +137,17 @@ Bug Fixes:
 - Add padding for RSA_SHA1. (patch by Olav Morken).
 
 
-27 Nov 2007, 1.2.0
+## 27 Nov 2007, 1.2.0
 Features:
 - New addReference/List option (overwrite). Boolean flag indicating if URI
   value should be overwritten if already existing within document.
   Default is TRUE to maintain BC.
 
-18 Nov 2007, 1.1.2
+## 18 Nov 2007, 1.1.2
 Bug Fixes:
 - Remove closing PHP tag to fix extra whitespace characters from being output
 
-11 Nov 2007, 1.1.1
+## 11 Nov 2007, 1.1.1
 Features:
 - Add getRefNodeID() and getRefIDs() methods missed in previous release.
   Provide functionality to find URIs of existing reference nodes.
@@ -152,7 +156,7 @@ Features:
 Bug Fixes:
 - Remove erroneous whitespace causing issues under certain circumastances.
 
-18 Oct 2007, 1.1.0
+## 18 Oct 2007, 1.1.0
 Features:
 - Enable creation of enveloping signature. This allows the creation of
   managed information cards.
