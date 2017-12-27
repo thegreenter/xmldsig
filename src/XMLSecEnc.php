@@ -2,6 +2,7 @@
 namespace RobRichards\XMLSecLibs;
 
 use DOMDocument;
+use DOMElement;
 use DOMNode;
 use DOMXPath;
 use Exception;
@@ -498,6 +499,7 @@ class XMLSecEnc
      * @param null|XMLSecurityKey $objBaseKey
      * @param null|DOMNode $node
      * @return null|XMLSecurityKey
+     * @throws Exception
      */
     public function locateKeyInfo($objBaseKey=null, $node=null)
     {
