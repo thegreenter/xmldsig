@@ -180,10 +180,12 @@ class XMLSecEnc
                     }
                     $this->rawNode->appendChild($importEnc);
                     return $importEnc;
+                default:
+                    throw new Exception('No valid type');
             }
-        } else {
-            return $this->encdoc->documentElement;
         }
+
+        return $this->encdoc->documentElement;
     }
 
     /**
