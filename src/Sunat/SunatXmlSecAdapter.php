@@ -1,11 +1,11 @@
 <?php
 
-namespace RobRichards\XMLSecLibs\Sunat\Adapter;
+namespace Greenter\XMLSecLibs\Sunat;
 
 use DOMDocument;
-use RobRichards\XMLSecLibs\XMLSecEnc;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
+use Greenter\XMLSecLibs\XMLSecEnc;
+use Greenter\XMLSecLibs\XMLSecurityDSig;
+use Greenter\XMLSecLibs\XMLSecurityKey;
 use RuntimeException;
 use UnexpectedValueException;
 
@@ -89,24 +89,20 @@ class SunatXmlSecAdapter implements AdapterInterface
      */
     public function setCertificate($cert)
     {
-        $this->setPrivateKey($cert);
-        $this->setPublicKey($cert);
+        $this->privateKey = $cert;
+        $this->publicKey = $cert;
     }
 
     /**
-     * @inheritdoc
+     * @param string $filename
      */
-    public function setPrivateKey($privateKey)
+    public function setCertificateFromFile($filename)
     {
-        $this->privateKey = $privateKey;
-    }
+        if (!file_exists($filename)) {
+            throw new \InvalidArgumentException('Certificate File not found');
+        }
 
-    /**
-     * @inheritdoc
-     */
-    public function setPublicKey($publicKey)
-    {
-        $this->publicKey = $publicKey;
+        $this->setCertificate(file_get_contents($filename));
     }
 
     /**
@@ -119,14 +115,6 @@ class SunatXmlSecAdapter implements AdapterInterface
         }
 
         return $this->publicKey;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getKeyAlgorithm()
-    {
-        return $this->keyAlgorithm;
     }
 
     /**
