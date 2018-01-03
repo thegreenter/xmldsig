@@ -1,6 +1,6 @@
 # xmlseclibs
 
-## 02m Jan 2018, 4.0.0
+## 02 Jan 2018, 4.0.0
 - Change package name 
 - Move namespaces
 
