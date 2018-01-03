@@ -6,7 +6,7 @@
  * Time: 10:23 AM
  */
 
-use RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
+use Greenter\XMLSecLibs\Sunat\SunatXmlSecAdapter;
 
 require '../vendor/autoload.php';
 
