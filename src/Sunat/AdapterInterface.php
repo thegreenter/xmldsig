@@ -1,6 +1,6 @@
 <?php
 
-namespace RobRichards\XMLSecLibs\Sunat\Adapter;
+namespace Greenter\XMLSecLibs\Sunat;
 
 use DOMDocument;
 use RuntimeException;

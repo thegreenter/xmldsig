@@ -3,8 +3,8 @@ Basic Signature
 --FILE--
 <?php
 require(dirname(__FILE__) . '/../xmlseclibs.php');
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
+use Greenter\XMLSecLibs\XMLSecurityDSig;
+use Greenter\XMLSecLibs\XMLSecurityKey;
 
 if (file_exists(dirname(__FILE__) . '/sign-basic-test.xml')) {
     unlink(dirname(__FILE__) . '/sign-basic-test.xml');

@@ -18,7 +18,7 @@ composer require giansalex/xmldsig
 ## Ejemplo
 ```php
 
-use RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
+use Greenter\XMLSecLibs\Sunat\SunatXmlSecAdapter;
 
 require 'vendor/autoload.php';
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace RobRichards\XMLSecLibs\Sunat\Adapter;
+namespace Greenter\XMLSecLibs\Sunat;
 
 use DOMDocument;
-use RobRichards\XMLSecLibs\XMLSecEnc;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
+use Greenter\XMLSecLibs\XMLSecEnc;
+use Greenter\XMLSecLibs\XMLSecurityDSig;
+use Greenter\XMLSecLibs\XMLSecurityKey;
 use RuntimeException;
 use UnexpectedValueException;
 

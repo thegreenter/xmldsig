@@ -1,6 +1,6 @@
 {
   "name": "giansalex/xmldsig",
-  "description": "Herramienta para Firmar XML segun normativa de SUNAT para Facturación Electrónica",
+  "description": "Libreria para firmar XML según normativa de SUNAT en Facturación Electrónica",
   "license": "BSD-2-Clause",
   "keywords": [
     "xml",
@@ -12,7 +12,7 @@
   "homepage": "https://github.com/giansalex/xmldsig",
   "autoload": {
     "psr-4": {
-      "RobRichards\\XMLSecLibs\\": "src"
+      "Greenter\\XMLSecLibs\\": "src"
     }
   },
   "require": {
