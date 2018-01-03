@@ -14,7 +14,7 @@ matrix:
     - php: hhvm
     
 script:
-  - if [[ $EXECUTE_COVERAGE == 'true' ]]; then phpunit --coverage-clover clover.xml tests; fi
+  - if [[ $EXECUTE_COVERAGE == 'true' ]]; then phpunit --configuration phpunit.xml --coverage-clover clover.xml; fi
   - if [[ $EXECUTE_COVERAGE != 'true' ]]; then phpunit tests; fi
   
 after_success:
