@@ -29,8 +29,7 @@ $xmlDocument = new DOMDocument();
 $xmlDocument->load($xmlPath);
 
 $xmlTool = new SunatXmlSecAdapter();
-$xmlTool->setPrivateKey(file_get_contents($certPath));
-$xmlTool->setPublicKey(file_get_contents($certPath));
+$xmlTool->setCertificateFromFile($certPath);
 
 $xmlTool->sign($xmlDocument);
 
