@@ -148,6 +148,20 @@ class SunatXmlSecAdapter implements AdapterInterface
     }
 
     /**
+     * Sign from file.
+     * @param string $filename
+     */
+    public function signFromFile($filename)
+    {
+        if (!file_exists($filename)) {
+            throw new \InvalidArgumentException('File to sign, not found');
+        }
+
+        $doc = $this->getDocXml(file_get_contents($filename));
+        $this->sign($doc);
+    }
+
+    /**
      * @inheritdoc
      */
     public function verify(DOMDocument $data)

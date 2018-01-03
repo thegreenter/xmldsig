@@ -25,13 +25,10 @@ require 'vendor/autoload.php';
 $xmlPath = 'path-dir/20600995805-01-F001-1.xml';
 $certPath = 'path-dir/SFSCert.pem'; // Convertir pfx to pem 
 
-$xmlDocument = new DOMDocument();
-$xmlDocument->load($xmlPath);
-
 $xmlTool = new SunatXmlSecAdapter();
 $xmlTool->setCertificateFromFile($certPath);
 
-$xmlTool->sign($xmlDocument);
+$xmlTool->signFromFile($xmlPath);
 
 header('Content-Type: text/xml');
 echo $xmlDocument->saveXML();
