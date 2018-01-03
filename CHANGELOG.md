@@ -1,5 +1,9 @@
 # xmlseclibs
 
+## 02m Jan 2018, 4.0.0
+- Change package name 
+- Move namespaces
+
 ## 27, Dec 2017, 3.0.3
 Improvements:
 - Implement Sunat Sign

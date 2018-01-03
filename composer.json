@@ -1,5 +1,5 @@
 {
-  "name": "giansalex/xmldsig",
+  "name": "greenter/xmldsig",
   "description": "Libreria para firmar XML según normativa de SUNAT en Facturación Electrónica",
   "license": "BSD-2-Clause",
   "keywords": [
