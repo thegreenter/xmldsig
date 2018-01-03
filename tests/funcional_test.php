@@ -6,33 +6,24 @@
  * Time: 10:23 AM
  */
 
-use RobRichards\XMLSecLibs\Sunat\Adapter\SunatXmlSecAdapter;
+use Greenter\XMLSecLibs\Sunat\SunatXmlSecAdapter;
 
 require '../vendor/autoload.php';
 
 $xmlPath = __DIR__ . '/invoice.xml';
-$certPath = __DIR__ . '/privkey.pem'; // Convertir pfx to pem
-$pcertPath = __DIR__ . '/mycert.pem';
-
-$doc = new DOMDocument();
+$certPath = __DIR__ . '/certificate.pem'; // Convertir pfx to pem
 
 $xmlDocument = new DOMDocument();
 $xmlDocument->load($xmlPath);
 
 $xmlTool = new SunatXmlSecAdapter();
-$xmlTool->setPrivateKey(file_get_contents($certPath));
-$xmlTool->setPublicKey(file_get_contents($pcertPath));
+$xmlTool->setCertificateFromFile($certPath);
 
 $xmlTool->sign($xmlDocument);
 
-
 $content = $xmlDocument->saveXML();
 
-$pKey = $xmlTool->getPublicKey($doc);
-if ($pKey != file_get_contents($pcertPath)) {
-    echo "Erro in Cert Key";
-    die();
-}
+$xmlTool->verify($xmlDocument);
 
 header('Content-Type: text/xml');
 echo $content;

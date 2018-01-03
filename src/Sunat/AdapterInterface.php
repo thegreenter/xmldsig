@@ -1,6 +1,6 @@
 <?php
 
-namespace RobRichards\XMLSecLibs\Sunat\Adapter;
+namespace Greenter\XMLSecLibs\Sunat;
 
 use DOMDocument;
 use RuntimeException;
@@ -38,38 +38,7 @@ interface AdapterInterface
      * @see AdapterInterface::DSA_SHA1
      * @see AdapterInterface::RSA_SHA1
      */
-    public function setPrivateKey($privateKey);
-
-    /**
-     * Set the public key.
-     *
-     * @param string $publicKey Key in PEM format
-     *
-     * @return void
-     */
-    public function setPublicKey($publicKey);
-
-    /**
-     * Returns the public key from various sources.
-     *
-     * Try to get the public key from the following sources (index means priority):
-     *
-     *  1) From $dom param of this method
-     *  2) From a previous publickey set by setPublicKey
-     *  3) From private key set by setPrivateKey
-     *
-     * @param null|DOMDocument $doc DOM node where to search a publicKey
-     *
-     * @return string|null Public key in PEM format
-     */
-    public function getPublicKey(DOMDocument $doc = null);
-
-    /**
-     * Public/Private key signature algorithm.
-     *
-     * @return string|null Algorithm URI
-     */
-    public function getKeyAlgorithm();
+    public function setCertificate($privateKey);
 
     /**
      * Add the "signature" element to the DOM Document.

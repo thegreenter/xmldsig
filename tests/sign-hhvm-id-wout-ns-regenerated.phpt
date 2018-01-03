@@ -7,8 +7,8 @@ Signing on HHVM a node which id attribute does not have namespace prefix, preven
 
 require(dirname(__FILE__) . '/../xmlseclibs.php');
 
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
+use Greenter\XMLSecLibs\XMLSecurityDSig;
+use Greenter\XMLSecLibs\XMLSecurityKey;
 
 $doc = new \DOMDocument();
 $doc->load(__DIR__.'/sign-hhvm-id-wout-ns-regenerated.xml');
