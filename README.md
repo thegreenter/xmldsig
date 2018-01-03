@@ -9,10 +9,10 @@ https://www.sslshopper.com/ssl-converter.html
 
 ## Install:
 
-Install using Composer from [packagist](https://packagist.org/packages/giansalex/xmldsig).  
+Install using Composer from [packagist](https://packagist.org/packages/greenter/xmldsig).  
 
 ```bash
-composer require giansalex/xmldsig
+composer require greenter/xmldsig
 ```
 
 ## Ejemplo
