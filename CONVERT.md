@@ -29,9 +29,9 @@ $pfx = file_get_contents('your-cert.pfx');
 $password = 'YOUR-PASSWORD';
 
 $converter = new PfxConverter($pfx, $password);
-$pem = $converter
+$cer = $converter
     ->toCer()
     ->getResult();
     
-file_put_contents('certificate.cer', $pem);
+file_put_contents('certificate.cer', $cer);
 ```
