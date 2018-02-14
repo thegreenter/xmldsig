@@ -4,7 +4,7 @@
 
 Esta libreria se emplea para firmar comprobantes electrónicos según las normas de SUNAT.
 
-Se requiere el certificado en .PEM, puede utilizar el siguiente ejemplo para [convertir el certificado .PFX al formato requerido](https://raw.githubusercontent.com/giansalex/xmldsig/master/Convert.md).
+Se requiere el certificado en .PEM, puede utilizar el siguiente ejemplo para [convertir el certificado .PFX al formato requerido](https://github.com/giansalex/xmldsig/blob/master/CONVERT.md).
 
 
 ## Install:

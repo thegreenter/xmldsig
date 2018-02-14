@@ -1,5 +1,10 @@
 # xmlseclibs
 
+## 14 Feb 2018, 4.0.1 :heart:
+- Add tool Pfx Converter
+    - Convert PFX to PEM
+    - Convert PFX to CER
+
 ## 02 Jan 2018, 4.0.0
 - Change package name 
 - Move namespaces
