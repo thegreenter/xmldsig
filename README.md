@@ -2,10 +2,10 @@
 [![Travis-CI](https://travis-ci.org/giansalex/xmldsig.svg?branch=master)](https://travis-ci.org/giansalex/xmldsig)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cb56bff3cd1545f2841614448bf31da2)](https://www.codacy.com/app/giansalex/xmldsig?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=giansalex/xmldsig&amp;utm_campaign=Badge_Grade)  
 
-Esta libreria se emplea para firmar documentos electronicos segun las normas de SUNAT.
+Esta libreria se emplea para firmar comprobantes electrónicos según las normas de SUNAT.
 
-Se requiere convertir el certificado .PFX a .PEM, aqui una herramienta online para convertirlo:  
-https://www.sslshopper.com/ssl-converter.html
+Se requiere el certificado en .PEM, puede utilizar el siguiente ejemplo para [convertir el certificado .PFX al formato requerido](https://raw.githubusercontent.com/giansalex/xmldsig/master/Convert.md).
+
 
 ## Install:
 
