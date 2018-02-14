@@ -55,7 +55,7 @@ class PfxConverter
     /**
      * @return $this
      */
-    public function toCert()
+    public function toCer()
     {
         $this->joinCerts(['cert']);
 
