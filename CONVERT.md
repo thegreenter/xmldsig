@@ -6,7 +6,7 @@ El archivo resultante se utiliza para firmar los comprobantes electrónicos.
 use Greenter\XMLSecLibs\Certificate\X509Certificate;
 use Greenter\XMLSecLibs\Certificate\X509ContentType;
 
-require __DIR__.'/../vendor/autoload.php';
+require 'vendor/autoload.php';
 
 $pfx = file_get_contents('your-cert.pfx');
 $password = 'YOUR-PASSWORD';
@@ -23,7 +23,7 @@ El archivo resultante se utiliza para subirlo a SUNAT.
 use Greenter\XMLSecLibs\Certificate\X509Certificate;
 use Greenter\XMLSecLibs\Certificate\X509ContentType;
 
-require __DIR__.'/../vendor/autoload.php';
+require 'vendor/autoload.php';
 
 $pfx = file_get_contents('your-cert.pfx');
 $password = 'YOUR-PASSWORD';
