@@ -10,11 +10,13 @@ use RuntimeException;
 use UnexpectedValueException;
 
 /**
- * XmlDSig Sunat adapter based on "xmlseclibs" library.
- *
+ * Class SignedXml
  */
-class SunatXmlSecAdapter implements AdapterInterface
+class SignedXml
 {
+    /* Transform */
+    const ENVELOPED = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature';
+    const EXT_NS = 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2';
     /**
      * Private key.
      *
@@ -260,7 +262,7 @@ class SunatXmlSecAdapter implements AdapterInterface
     private function getNodeSign(DOMDocument $data)
     {
         $els = $data->getElementsByTagNameNS(
-            'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2',
+            self::EXT_NS,
             'ExtensionContent');
 
         $nodeSign = null;
