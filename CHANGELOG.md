@@ -1,5 +1,9 @@
 # xmlseclibs
 
+## 15 Feb 2018, 5.0.0
+- Rename sunatxmladapter to SignedXml
+- Remove adaptesecadapter
+
 ## 15 Feb 2018, 4.1.0
 - Add x509 Certificate
 - Export x509 (PEM, CER)
