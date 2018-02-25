@@ -6,7 +6,7 @@
  * Time: 10:23 AM
  */
 
-use Greenter\XMLSecLibs\Sunat\SunatXmlSecAdapter;
+use Greenter\XMLSecLibs\Sunat\SignedXml;
 
 require '../vendor/autoload.php';
 
@@ -16,7 +16,7 @@ $certPath = __DIR__ . '/certificate.pem'; // Convertir pfx to pem
 $xmlDocument = new DOMDocument();
 $xmlDocument->load($xmlPath);
 
-$xmlTool = new SunatXmlSecAdapter();
+$xmlTool = new SignedXml();
 $xmlTool->setCertificateFromFile($certPath);
 
 $xmlTool->sign($xmlDocument);
