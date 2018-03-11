@@ -66,8 +66,8 @@ class SignedXml
     public function signXml($content)
     {
         $doc = $this->getDocXml($content);
-
         $this->sign($doc);
+
         return $doc->saveXML();
     }
 
@@ -152,6 +152,7 @@ class SignedXml
     /**
      * Sign from file.
      * @param string $filename
+     * @return string
      */
     public function signFromFile($filename)
     {
@@ -159,8 +160,7 @@ class SignedXml
             throw new \InvalidArgumentException('File to sign, not found');
         }
 
-        $doc = $this->getDocXml(file_get_contents($filename));
-        $this->sign($doc);
+        return $this->signXml(file_get_contents($filename));
     }
 
     /**
