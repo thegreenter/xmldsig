@@ -1,3 +1,6 @@
+--TEST--
+Check export .pfx to .pem
+--FILE--
 <?php
 
 use Greenter\XMLSecLibs\Certificate\X509Certificate;
@@ -10,9 +13,12 @@ $password = '123456';
 
 try {
     $certificate = X509Certificate::createFromFile($pfx, $password);
-    echo $certificate->getName();
     $pem = $certificate->export(X509ContentType::PEM);
-    //file_put_contents('my.pem', $pem);
+    echo "OK\n";
 } catch (Exception $e) {
     echo $e->getMessage();
 }
+
+?>
+--EXPECTF--
+OK
