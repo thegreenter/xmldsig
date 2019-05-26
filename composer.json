@@ -16,9 +16,8 @@
     }
   },
   "require": {
-    "php": ">=5.5.9"
-   },
-  "suggest": {
-    "ext-openssl": "The OpenSsl Extension"
+    "php": ">=5.5.9",
+    "ext-dom": "*",
+    "ext-openssl": "*"
   }
 }
