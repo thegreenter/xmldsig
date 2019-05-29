@@ -87,12 +87,7 @@ class X509Certificate
      */
     public function getValidFrom()
     {
-        $value = $this->getSubjectValue('validTo_time_t');
-        if ($value) {
-            return (new DateTime())->setTimestamp($value);
-        }
-
-        return $value;
+        return $this->getSubjectDateValue('validFrom_time_t');
     }
 
     /**
@@ -102,12 +97,7 @@ class X509Certificate
      */
     public function getExpiration()
     {
-        $value = $this->getSubjectValue('validFrom_time_t');
-        if ($value) {
-            return (new DateTime())->setTimestamp($value);
-        }
-
-        return $value;
+        return $this->getSubjectDateValue('validTo_time_t');
     }
 
     /**
@@ -207,5 +197,15 @@ class X509Certificate
         }
 
         return null;
+    }
+
+    private function getSubjectDateValue($key)
+    {
+        $value = $this->getSubjectValue($key);
+        if ($value) {
+            return (new DateTime())->setTimestamp($value);
+        }
+
+        return $value;
     }
 }
