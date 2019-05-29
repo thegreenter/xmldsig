@@ -7,6 +7,9 @@
  */
 namespace Greenter\XMLSecLibs\Certificate;
 
+use DateTime;
+use Exception;
+
 /**
  * Class X509Certificate
  */
@@ -16,10 +19,6 @@ class X509Certificate
      * @var string
      */
     private $pfx;
-    /**
-     * @var string
-     */
-    private $password;
     /**
      * @var array
      */
@@ -33,12 +32,11 @@ class X509Certificate
      * X509Certificate constructor.
      * @param string $pfx
      * @param string $password
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($pfx, $password)
     {
         $this->pfx = $pfx;
-        $this->password = $password;
         $this->parsePfx($pfx, $password);
     }
 
@@ -46,12 +44,12 @@ class X509Certificate
      * @param string $filename
      * @param string $password
      * @return X509Certificate
-     * @throws \Exception
+     * @throws Exception
      */
     public static function createFromFile($filename, $password)
     {
         if (!file_exists($filename)) {
-            throw new \Exception('Certificate File not found');
+            throw new Exception('Certificate File not found');
         }
         $content = file_get_contents($filename);
 
@@ -85,31 +83,21 @@ class X509Certificate
     /**
      * Certificate is valid from this date.
      *
-     * @return \DateTime|null
+     * @return DateTime|null
      */
     public function getValidFrom()
     {
-        $value = $this->getSubjectValue('validTo_time_t');
-        if ($value) {
-            return (new \DateTime())->setTimestamp($value);
-        }
-
-        return $value;
+        return $this->getSubjectDateValue('validFrom_time_t');
     }
 
     /**
-     * .
+     * Certificate is valid to this date..
      *
-     * @return \DateTime|null
+     * @return DateTime|null
      */
     public function getExpiration()
     {
-        $value = $this->getSubjectValue('validFrom_time_t');
-        if ($value) {
-            return (new \DateTime())->setTimestamp($value);
-        }
-
-        return $value;
+        return $this->getSubjectDateValue('validTo_time_t');
     }
 
     /**
@@ -174,14 +162,14 @@ class X509Certificate
     /**
      * @param $pfx
      * @param $password
-     * @throws \Exception
+     * @throws Exception
      */
     private function parsePfx($pfx, $password)
     {
         $result = openssl_pkcs12_read($pfx, $certs, $password);
 
         if ($result === false) {
-            throw new \Exception(openssl_error_string());
+            throw new Exception(openssl_error_string());
         }
 
         $this->certs = $certs;
@@ -209,5 +197,15 @@ class X509Certificate
         }
 
         return null;
+    }
+
+    private function getSubjectDateValue($key)
+    {
+        $value = $this->getSubjectValue($key);
+        if ($value) {
+            return (new DateTime())->setTimestamp($value);
+        }
+
+        return $value;
     }
 }
