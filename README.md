@@ -4,34 +4,34 @@
 
 Esta libreria se emplea para firmar comprobantes electrónicos según las normas de SUNAT.
 
-Se requiere el certificado en .PEM, puede utilizar el siguiente ejemplo para [convertir el certificado .PFX al formato requerido](https://github.com/giansalex/xmldsig/blob/master/CONVERT.md).
+Se requiere el certificado en formato .PEM, puede utilizar el siguiente ejemplo para [convertir el certificado .PFX al otros formatos](https://github.com/giansalex/xmldsig/blob/master/CONVERT.md).
 
 
-## Install:
+## Instalar:
 
-Install using Composer from [packagist](https://packagist.org/packages/greenter/xmldsig).  
+Empleando composer desde [packagist](https://packagist.org/packages/greenter/xmldsig).  
 
 ```bash
 composer require greenter/xmldsig
 ```
 
 ## Ejemplo
+
 ```php
 
 use Greenter\XMLSecLibs\Sunat\SignedXml;
 
 require 'vendor/autoload.php';
 
-$xmlPath = 'path-dir/20600995805-01-F001-1.xml';
-$certPath = 'path-dir/SFSCert.pem'; // Convertir pfx to pem 
+$xmlPath = '20600995805-01-F001-1.xml';
+$certPath = 'certifcate.pem'; // Convertir pfx to pem (public+private key) 
 
 $signer = new SignedXml();
 $signer->setCertificateFromFile($certPath);
 
 $xmlSigned = $signer->signFromFile($xmlPath);
 
-header('Content-Type: text/xml');
-echo $xmlSigned;
+file_put_contents("signed.xml", $xmlSigned);
 ```
 
 **Resultado:**  
