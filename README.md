@@ -24,7 +24,7 @@ use Greenter\XMLSecLibs\Sunat\SignedXml;
 require 'vendor/autoload.php';
 
 $xmlPath = '20600995805-01-F001-1.xml';
-$certPath = 'certifcate.pem'; // Convertir pfx to pem (public+private key) 
+$certPath = 'certifcate.pem'; // Antes convertir pfx -> pem (public+private key) 
 
 $signer = new SignedXml();
 $signer->setCertificateFromFile($certPath);
@@ -36,7 +36,7 @@ file_put_contents("signed.xml", $xmlSigned);
 
 **Resultado:**  
 
-Before:
+Antes:
 ```xml
 <ext:UBLExtensions>
     <ext:UBLExtension>
@@ -45,7 +45,7 @@ Before:
 </ext:UBLExtensions>
 ```
 
-After:
+Despues:
 ```xml
 <ext:UBLExtensions>
     <ext:UBLExtension>
