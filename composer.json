@@ -9,7 +9,7 @@
     "security",
     "sunat"
   ],
-  "homepage": "https://github.com/giansalex/xmldsig",
+  "homepage": "https://github.com/thegreenter/xmldsig",
   "autoload": {
     "psr-4": {
       "Greenter\\XMLSecLibs\\": "src"
