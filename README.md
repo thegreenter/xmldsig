@@ -24,7 +24,7 @@ use Greenter\XMLSecLibs\Sunat\SignedXml;
 require 'vendor/autoload.php';
 
 $xmlPath = '20600995805-01-F001-1.xml';
-$certPath = 'certifcate.pem'; // Antes convertir pfx -> pem (public+private key) 
+$certPath = 'certifcate.pem'; // Antes convertir pfx -> pem (private+certificate keys) 
 
 $signer = new SignedXml();
 $signer->setCertificateFromFile($certPath);
