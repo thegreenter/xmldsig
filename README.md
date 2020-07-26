@@ -28,8 +28,10 @@ $certPath = 'certifcate.pem'; // Antes convertir pfx -> pem (private+certificate
 
 $signer = new SignedXml();
 $signer->setCertificateFromFile($certPath);
+// or $signer->setCertificate('-----BEGIN RSA PRIVATE KEY-----.....');
 
 $xmlSigned = $signer->signFromFile($xmlPath);
+// or $signer->signXml('<Invoice>....');
 
 file_put_contents("signed.xml", $xmlSigned);
 ```
