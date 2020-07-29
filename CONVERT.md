@@ -1,4 +1,4 @@
-## Convertir Pfx a otros formatos
+## Convertir P12, Pfx a otros formatos
 
 ## Convert to .PEM
 El archivo resultante se utiliza para firmar los comprobantes electrónicos.
