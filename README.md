@@ -79,3 +79,26 @@ Despues:
     </ext:UBLExtension>
 </ext:UBLExtensions>
 ```
+
+## Seguridad
+
+`verifyXml()` comprueba que el XML no fue alterado después de firmarse, pero **usa el certificado incluido en el
+propio XML**. Por eso no comprueba quién firmó: un documento modificado y firmado de nuevo con cualquier certificado
+(incluso uno autofirmado) también devuelve `true`.
+
+Si vas a verificar comprobantes de terceros, valida tú mismo el certificado antes de confiar en el resultado:
+
+```php
+$doc = new DOMDocument();
+$doc->loadXML($xml, LIBXML_NONET);
+$signer = new SignedXml();
+$cert = $signer->getPublicKey($doc); // certificado incluido en el XML
+
+// Ejemplo: comparar con la huella del certificado esperado del emisor
+if (openssl_x509_fingerprint($cert, 'sha256') !== $huellaEsperada) {
+    throw new Exception('Certificado no confiable');
+}
+$valido = $signer->verify($doc);
+```
+
+Consulta [SECURITY_AUDIT.md](SECURITY_AUDIT.md) para el detalle de la auditoría de seguridad.
