@@ -1,0 +1,67 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '5.6'
+            phpunit: '5'
+          - php: '7.2'
+            phpunit: '8'
+          - php: '7.4'
+            phpunit: '9'
+          - php: '8.0'
+            phpunit: '9'
+          - php: '8.1'
+            phpunit: '9'
+          - php: '8.2'
+            phpunit: '9'
+          - php: '8.3'
+            phpunit: '9'
+          - php: '8.4'
+            phpunit: '9'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, openssl
+          tools: composer, phpunit:${{ matrix.phpunit }}
+          coverage: none
+
+      # El certificado de prueba SFSCert.pfx usa algoritmos que OpenSSL 3
+      # solo soporta con el provider "legacy" habilitado.
+      - name: Enable OpenSSL legacy provider
+        run: |
+          cat > "$RUNNER_TEMP/openssl.cnf" <<'CNF'
+          openssl_conf = openssl_init
+          [openssl_init]
+          providers = provider_sect
+          [provider_sect]
+          default = default_sect
+          legacy = legacy_sect
+          [default_sect]
+          activate = 1
+          [legacy_sect]
+          activate = 1
+          CNF
+          echo "OPENSSL_CONF=$RUNNER_TEMP/openssl.cnf" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests
+        run: phpunit --configuration phpunit.xml
