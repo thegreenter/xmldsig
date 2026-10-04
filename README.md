@@ -79,3 +79,19 @@ Despues:
     </ext:UBLExtension>
 </ext:UBLExtensions>
 ```
+
+### Algoritmo de firma
+
+Por defecto se firma con RSA y SHA-1. Para firmar con RSA-SHA256 y digest SHA-256, configura los dos: con solo la firma en SHA-256, el documento se sigue resumiendo con SHA-1.
+
+```php
+use Greenter\XMLSecLibs\Sunat\SignedXml;
+use Greenter\XMLSecLibs\XMLSecurityDSig;
+use Greenter\XMLSecLibs\XMLSecurityKey;
+
+$signer = new SignedXml();
+$signer->setSignatureAlgorithm(XMLSecurityKey::RSA_SHA256);
+$signer->setDigestAlgorithm(XMLSecurityDSig::SHA256);
+```
+
+`verifyXml()` toma el certificado y el algoritmo del XML verificado y los deja en la instancia: usa una instancia distinta para firmar y para verificar.

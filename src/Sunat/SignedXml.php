@@ -17,6 +17,27 @@ class SignedXml
     /* Transform */
     const ENVELOPED = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature';
     const EXT_NS = 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2';
+
+    /**
+     * Supported signature algorithm URIs.
+     *
+     * @var array
+     */
+    protected static $signatureAlgorithms = [
+        XMLSecurityKey::RSA_SHA1,
+        XMLSecurityKey::RSA_SHA256,
+    ];
+
+    /**
+     * Supported digest algorithm URIs.
+     *
+     * @var array
+     */
+    protected static $digestAlgorithms = [
+        XMLSecurityDSig::SHA1,
+        XMLSecurityDSig::SHA256,
+    ];
+
     /**
      * Private key.
      *
@@ -93,6 +114,38 @@ class SignedXml
     {
         $this->privateKey = $cert;
         $this->publicKey = $cert;
+    }
+
+    /**
+     * Set the signature algorithm (SignatureMethod). By default RSA with SHA1.
+     *
+     * @param string $algorithm XMLSecurityKey::RSA_SHA1 or XMLSecurityKey::RSA_SHA256.
+     *
+     * @throws \InvalidArgumentException If the algorithm is not supported.
+     */
+    public function setSignatureAlgorithm($algorithm)
+    {
+        if (!in_array($algorithm, static::$signatureAlgorithms, true)) {
+            throw new \InvalidArgumentException('Unsupported signature algorithm: '.$algorithm);
+        }
+
+        $this->keyAlgorithm = $algorithm;
+    }
+
+    /**
+     * Set the digest algorithm (DigestMethod). By default SHA1.
+     *
+     * @param string $algorithm XMLSecurityDSig::SHA1 or XMLSecurityDSig::SHA256.
+     *
+     * @throws \InvalidArgumentException If the algorithm is not supported.
+     */
+    public function setDigestAlgorithm($algorithm)
+    {
+        if (!in_array($algorithm, static::$digestAlgorithms, true)) {
+            throw new \InvalidArgumentException('Unsupported digest algorithm: '.$algorithm);
+        }
+
+        $this->digestAlgorithm = $algorithm;
     }
 
     /**
@@ -191,12 +244,16 @@ class SignedXml
         }
 
         if (!$objKey) {
-            $objKey = new XMLSecurityKey(
-                $this->keyAlgorithm,
-                [
-                     'type' => 'public',
-                ]
-            );
+            // Use the algorithm of the signature, not the one configured to sign.
+            $objKey = $objXMLSecDSig->locateKey();
+            if (!$objKey) {
+                $objKey = new XMLSecurityKey(
+                    $this->keyAlgorithm,
+                    [
+                         'type' => 'public',
+                    ]
+                );
+            }
             $objKey->loadKey($this->getPublicKey());
         }
 
