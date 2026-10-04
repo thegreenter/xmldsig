@@ -1,6 +1,5 @@
 # XmlDSig - Greenter
-[![Travis-CI](https://travis-ci.org/giansalex/xmldsig.svg?branch=master)](https://travis-ci.org/giansalex/xmldsig)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cb56bff3cd1545f2841614448bf31da2)](https://www.codacy.com/app/giansalex/xmldsig?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=giansalex/xmldsig&amp;utm_campaign=Badge_Grade)  
+[![Tests](https://github.com/thegreenter/xmldsig/actions/workflows/tests.yml/badge.svg)](https://github.com/thegreenter/xmldsig/actions/workflows/tests.yml)  
 
 Esta libreria se emplea para firmar comprobantes electrónicos según las normas de SUNAT.
 
