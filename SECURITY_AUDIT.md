@@ -180,3 +180,23 @@ No existe `SECURITY.md`. Recomendado indicar cómo reportar vulnerabilidades de 
 2. Portar parches de upstream (2, 3, 5) y lista blanca de algoritmos/transforms (4, 6).
 3. Endurecer parseo XML (8).
 4. Versión mayor: PHP ≥ 8.1, CI en GitHub Actions, deprecaciones 8.4 (9, 10).
+
+---
+
+## Estado de las correcciones (2026-10-09)
+
+| # | Estado |
+|---|--------|
+| 1 | Mitigado: `verifyXml()`/`verify()` usan el certificado configurado si existe y ya no reemplazan el certificado ni el algoritmo de la instancia; `getPublicKey($doc)` devuelve el certificado incrustado sin modificar la instancia. Sin certificado configurado sigue siendo sólo integridad (documentado en el README). Pendiente: validación de cadena/CA en la API. |
+| 2 | Corregido: parche de upstream 3.0.4 (CVE-2019-3465). |
+| 3 | Corregido: referencias externas, sin resolver o con `Id` duplicado se rechazan. |
+| 4 | Corregido: setters de firma/digest/canonicalización en `SignedXml` y lista blanca en verificación (RSA-SHA1/RSA-SHA256, SHA-1/SHA-256, enveloped + C14N); listas configurables en `XMLSecurityDSig`. RSA-SHA1 se mantiene por defecto para firmar. |
+| 5 | Corregido: `hash_equals()`, clave HMAC no admite material asimétrico y `verify()` exige que el algoritmo de la clave coincida con `SignatureMethod`. |
+| 6 | Corregido: transform XPath rechazado en verificación por defecto; transforms y canonicalizaciones desconocidas rechazadas. |
+| 7 | Mitigado: AES-GCM y RSA-OAEP (upstream 3.1.x), validación de padding CBC, CBC/3DES/RSA-1_5 marcados como obsoletos. |
+| 8 | Corregido: `LIBXML_NONET`, rechazo de `DOCTYPE` y excepción clara en XML inválido. |
+| 9 | Corregido: `php >=8.1`, GitHub Actions 8.1–8.4, PHPUnit 10, `composer audit`, PHPStan. |
+| 10 | Corregido. |
+| 11 | Corregido: `random_bytes()`. |
+| 12 | Revisado: `mycert.pem`/`privkey.pem`/`certificate.pem` son los de prueba de xmlseclibs; `SFSCert.pfx` es autofirmado (certificado de prueba del SFS de SUNAT). |
+| 13 | Corregido: `SECURITY.md`. |

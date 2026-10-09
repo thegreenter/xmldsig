@@ -8,6 +8,8 @@ Se requiere el certificado en formato .PEM, puede utilizar el siguiente ejemplo 
 
 ## Instalar:
 
+Requiere PHP >= 8.1 con las extensiones `dom`, `libxml` y `openssl`.
+
 Empleando composer desde [packagist](https://packagist.org/packages/greenter/xmldsig).  
 
 ```bash

@@ -700,7 +700,7 @@ class XMLSecurityKey
         } else if ($length < 0x0100) {
             $output = sprintf("%c%c%c%s", $type, 0x81, $length, $string);
         } else if ($length < 0x010000) {
-            $output = sprintf("%c%c%c%c%s", $type, 0x82, $length / 0x0100, $length % 0x0100, $string);
+            $output = sprintf("%c%c%c%c%s", $type, 0x82, intdiv($length, 0x0100), $length % 0x0100, $string);
         } else {
             $output = null;
         }

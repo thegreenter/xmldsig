@@ -1,6 +1,6 @@
 # xmlseclibs
 
-## Unreleased, 6.0.0
+## Unreleased (major)
 Upstream (robrichards/xmlseclibs 3.0.4 - 3.1.5):
 - Reject signatures with more than one `SignedInfo` and only process `SignedInfo[1]` (CVE-2019-3465).
 - Throw when canonicalization fails instead of signing/verifying `false` (3.1.4, canonicalization bypass).
@@ -27,6 +27,14 @@ Security (see SECURITY_AUDIT.md):
 - Validate ISO 10126 padding on CBC decryption, parse decrypted XML with `LIBXML_NONET` rejecting DOCTYPE and bound
   nested `EncryptedKey`/`RetrievalMethod` references. CBC/3DES and RSA-1_5 are deprecated in favour of AES-GCM/RSA-OAEP.
 - `generateGUID()`, session keys and IVs use `random_bytes()`.
+
+Platform:
+- Require PHP >= 8.1 (and `ext-libxml`).
+- Fix PHP 8.4 implicit nullable deprecation in `SignedXml::getPublicKey()` and a float to int conversion in
+  `XMLSecurityKey::makeAsnSegment()`.
+- GitHub Actions on PHP 8.1 - 8.4 with PHPUnit 10, `composer audit` and PHPStan; remove Travis CI.
+- Add `SECURITY.md`.
+- Fix `X509Certificate::getIssuer()` returning the subject.
 
 ## 15 Feb 2018, 5.0.0
 - Rename sunatxmladapter to SignedXml
