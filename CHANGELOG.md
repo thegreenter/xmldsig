@@ -1,5 +1,15 @@
 # xmlseclibs
 
+## Unreleased
+Seguridad (parches de upstream xmlseclibs 3.0.4 – 3.1.5):
+- Rechazar firmas con más de un `SignedInfo` y procesar sólo `SignedInfo[1]` (CVE-2019-3465, upstream 3.0.4).
+- Lanzar excepción si la canonicalización falla, en lugar de continuar con `false` (bypass de canonicalización, upstream 3.1.4).
+- Soporte AES-GCM (128/192/256) con validación del tag de autenticación (upstream 3.1.0 y 3.1.5).
+- Soporte RSA-OAEP (xmlenc11) (upstream 3.1.1).
+- Respetar `InclusiveNamespaces/PrefixList` en `CanonicalizationMethod` (upstream 3.1.0).
+- Eliminar tabuladores al leer `X509Certificate` (upstream 3.1.2).
+- `X509SubjectName` usaba el emisor en lugar del sujeto del certificado.
+
 ## 15 Feb 2018, 5.0.0
 - Rename sunatxmladapter to SignedXml
 - Remove adaptesecadapter
