@@ -6,13 +6,18 @@ use Exception;
 
 class XMLSecurityKey
 {
+    /** @deprecated Unauthenticated CBC mode, use AES*_GCM. */
     const TRIPLEDES_CBC = 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc';
+    /** @deprecated Unauthenticated CBC mode, use AES128_GCM. */
     const AES128_CBC = 'http://www.w3.org/2001/04/xmlenc#aes128-cbc';
+    /** @deprecated Unauthenticated CBC mode, use AES192_GCM. */
     const AES192_CBC = 'http://www.w3.org/2001/04/xmlenc#aes192-cbc';
+    /** @deprecated Unauthenticated CBC mode, use AES256_GCM. */
     const AES256_CBC = 'http://www.w3.org/2001/04/xmlenc#aes256-cbc';
     const AES128_GCM = 'http://www.w3.org/2009/xmlenc11#aes128-gcm';
     const AES192_GCM = 'http://www.w3.org/2009/xmlenc11#aes192-gcm';
     const AES256_GCM = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
+    /** @deprecated PKCS#1 v1.5 key transport is exposed to Bleichenbacher attacks, use RSA_OAEP. */
     const RSA_1_5 = 'http://www.w3.org/2001/04/xmlenc#rsa-1_5';
     const RSA_OAEP_MGF1P = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
     const RSA_OAEP = 'http://www.w3.org/2009/xmlenc11#rsa-oaep';
@@ -252,7 +257,7 @@ class XMLSecurityKey
         }
         $keysize = $this->cryptParams['keysize'];
         
-        $key = openssl_random_pseudo_bytes($keysize);
+        $key = random_bytes($keysize);
         
         if ($this->type === self::TRIPLEDES_CBC) {
             /* Make sure that the generated key has the proper parity bits set.
@@ -321,6 +326,12 @@ class XMLSecurityKey
         } else {
             $this->key = $key;
         }
+        if ($this->cryptParams['library'] === self::HMAC_SHA1
+            && ($isCert || ! is_string($this->key) || strpos($this->key, '-----BEGIN') !== false)) {
+            /* A public key or certificate is not a secret: using it as an HMAC
+             * key would let anyone forge the signature. */
+            throw new Exception('Asymmetric key material cannot be used as an HMAC key');
+        }
         if ($isCert) {
             $this->key = openssl_x509_read($this->key);
             openssl_x509_export($this->key, $str_cert);
@@ -384,8 +395,10 @@ class XMLSecurityKey
      */
     private function unpadISO10126($data)
     {
-        $padChr = substr($data, -1);
-        $padLen = ord($padChr);
+        $padLen = ord(substr($data, -1));
+        if ($padLen < 1 || $padLen > $this->cryptParams['blocksize'] || $padLen > strlen($data)) {
+            throw new Exception('Failure decrypting Data (openssl symmetric)');
+        }
         return substr($data, 0, -$padLen);
     }
 
@@ -398,11 +411,11 @@ class XMLSecurityKey
      */
     private function encryptSymmetric($data)
     {
-        $this->iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($this->cryptParams['cipher']));
+        $this->iv = random_bytes(openssl_cipher_iv_length($this->cryptParams['cipher']));
         $authTag = null;
         if (in_array($this->cryptParams['cipher'], ['aes-128-gcm', 'aes-192-gcm', 'aes-256-gcm'])) {
-            $authTag = openssl_random_pseudo_bytes(self::AUTHTAG_LENGTH);
-            $encrypted = openssl_encrypt($data, $this->cryptParams['cipher'], $this->key, OPENSSL_RAW_DATA, $this->iv, $authTag);
+            $authTag = '';
+            $encrypted = openssl_encrypt($data, $this->cryptParams['cipher'], $this->key, OPENSSL_RAW_DATA, $this->iv, $authTag, '', self::AUTHTAG_LENGTH);
         } else {
             $data = $this->padISO10126($data, $this->cryptParams['blocksize']);
             $encrypted = openssl_encrypt($data, $this->cryptParams['cipher'], $this->key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $this->iv);
@@ -638,7 +651,7 @@ class XMLSecurityKey
                 return $this->verifyOpenSSL($data, $signature);
             case (self::HMAC_SHA1):
                 $expectedSignature = hash_hmac("sha1", $data, $this->key, true);
-                return strcmp($signature, $expectedSignature) == 0;
+                return hash_equals($expectedSignature, $signature);
         }
 
         return '';

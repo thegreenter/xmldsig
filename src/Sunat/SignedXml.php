@@ -15,7 +15,7 @@ use UnexpectedValueException;
 class SignedXml
 {
     /* Transform */
-    const ENVELOPED = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature';
+    const ENVELOPED = XMLSecurityDSig::ENVELOPED;
     const EXT_NS = 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2';
 
     /**
@@ -36,6 +36,29 @@ class SignedXml
     protected static $digestAlgorithms = [
         XMLSecurityDSig::SHA1,
         XMLSecurityDSig::SHA256,
+    ];
+
+    /**
+     * Supported canonicalization algorithm URIs.
+     *
+     * @var array
+     */
+    protected static $canonicalMethods = [
+        XMLSecurityDSig::C14N,
+        XMLSecurityDSig::EXC_C14N,
+    ];
+
+    /**
+     * Transforms accepted while verifying a signature.
+     *
+     * @var array
+     */
+    protected static $transforms = [
+        XMLSecurityDSig::ENVELOPED,
+        XMLSecurityDSig::C14N,
+        XMLSecurityDSig::C14N_COMMENTS,
+        XMLSecurityDSig::EXC_C14N,
+        XMLSecurityDSig::EXC_C14N_COMMENTS,
     ];
 
     /**
@@ -95,13 +118,17 @@ class SignedXml
     /**
      * Verifica la firma del xml.
      *
+     * Si se configuró un certificado (setCertificate/setCertificateFromFile) la firma
+     * se verifica con ese certificado. Si no, se usa el certificado incluido en el
+     * propio XML: en ese caso `true` sólo indica que el documento no fue alterado
+     * después de firmarse, no quién lo firmó.
+     *
      * @param string $content
      * @return bool
      */
     public function verifyXml($content)
     {
         $doc = $this->getDocXml($content);
-        $this->getPublicKey($doc);
 
         return $this->verify($doc);
     }
@@ -149,6 +176,22 @@ class SignedXml
     }
 
     /**
+     * Set the canonicalization algorithm (CanonicalizationMethod). By default C14N.
+     *
+     * @param string $method XMLSecurityDSig::C14N or XMLSecurityDSig::EXC_C14N.
+     *
+     * @throws \InvalidArgumentException If the algorithm is not supported.
+     */
+    public function setCanonicalMethod($method)
+    {
+        if (!in_array($method, static::$canonicalMethods, true)) {
+            throw new \InvalidArgumentException('Unsupported canonical method: '.$method);
+        }
+
+        $this->canonicalMethod = $method;
+    }
+
+    /**
      * @param string $filename
      */
     public function setCertificateFromFile($filename)
@@ -161,12 +204,18 @@ class SignedXml
     }
 
     /**
-     * @inheritdoc
+     * Returns the configured certificate or, when $doc is given, the certificate
+     * included in the signature of $doc (without changing the configured one).
+     *
+     * @param DOMDocument|null $doc
+     * @return string|null
      */
-    public function getPublicKey(DOMDocument $doc = null)
+    public function getPublicKey(?DOMDocument $doc = null)
     {
         if ($doc) {
-            $this->setPublicKeyFromNode($doc);
+            $objKey = $this->getKeyFromNode($doc);
+
+            return $objKey ? $objKey->getX509Certificate() : null;
         }
 
         return $this->publicKey;
@@ -217,53 +266,48 @@ class SignedXml
     }
 
     /**
-     * @inheritdoc
+     * Verify the signature of the document.
+     *
+     * Uses the configured certificate when there is one, otherwise the certificate
+     * included in the signature (integrity only, see verifyXml()).
+     * Only the supported signature, digest and transform algorithms are accepted.
+     *
+     * @param DOMDocument $data
+     * @return bool
      */
     public function verify(DOMDocument $data)
     {
-        $objKey = null;
-        $objXMLSecDSig = $this->createXmlSecurityDSig();
+        $objXMLSecDSig = $this->createVerifierXmlSecurityDSig();
         $objDSig = $objXMLSecDSig->locateSignature($data);
         if (!$objDSig) {
             throw new UnexpectedValueException('Signature DOM element not found.');
         }
         $objXMLSecDSig->canonicalizeSignedInfo();
 
-        if (!$this->getPublicKey()) {
-            // try to get the public key from the certificate
-            $objKey = $objXMLSecDSig->locateKey();
-            if (!$objKey) {
+        // Use the algorithm of the signature, not the one configured to sign.
+        $objKey = $objXMLSecDSig->locateKey();
+        if (!$objKey || !in_array($objKey->getAlgorithm(), static::$signatureAlgorithms, true)) {
+            return false;
+        }
+
+        if ($this->publicKey) {
+            $objKey->loadKey($this->publicKey);
+        } else {
+            XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
+            if (!$objKey->key) {
                 throw new RuntimeException(
                     'There is no set either private key or public key for signature verification.'
                 );
             }
-
-            XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
-            $this->publicKey = $objKey->getX509Certificate();
-            $this->keyAlgorithm = $objKey->getAlgorithm();
         }
 
-        if (!$objKey) {
-            // Use the algorithm of the signature, not the one configured to sign.
-            $objKey = $objXMLSecDSig->locateKey();
-            if (!$objKey) {
-                $objKey = new XMLSecurityKey(
-                    $this->keyAlgorithm,
-                    [
-                         'type' => 'public',
-                    ]
-                );
-            }
-            $objKey->loadKey($this->getPublicKey());
-        }
-
-        // Check signature
-        if (1 !== $objXMLSecDSig->verify($objKey)) {
-            return false;
-        }
-
-        // Check references (data)
         try {
+            // Check signature
+            if (1 !== $objXMLSecDSig->verify($objKey)) {
+                return false;
+            }
+
+            // Check references (data)
             $objXMLSecDSig->validateReference();
         } catch (\Exception $e) {
             return false;
@@ -283,37 +327,45 @@ class SignedXml
     }
 
     /**
-     * Try to extract the public key from DOM node.
+     * Create the XMLSecurityDSig used to verify, restricted to the supported algorithms.
      *
-     * Sets publicKey and keyAlgorithm properties if success.
-     *
-     * @see publicKey
-     * @see keyAlgorithm
+     * @return XMLSecurityDSig
+     */
+    protected function createVerifierXmlSecurityDSig()
+    {
+        $objXMLSecDSig = $this->createXmlSecurityDSig();
+        $objXMLSecDSig->allowedSignatureAlgorithms = static::$signatureAlgorithms;
+        $objXMLSecDSig->allowedDigestAlgorithms = static::$digestAlgorithms;
+        $objXMLSecDSig->allowedTransforms = static::$transforms;
+        $objXMLSecDSig->allowXPathTransforms = false;
+
+        return $objXMLSecDSig;
+    }
+
+    /**
+     * Extract the key (and certificate) included in the signature of the document.
      *
      * @param DOMDocument $doc
      *
-     * @return bool `true` If public key was extracted or `false` if cannot be possible
+     * @return XMLSecurityKey|null
      * @throws \Exception
      */
-    protected function setPublicKeyFromNode(DOMDocument $doc)
+    protected function getKeyFromNode(DOMDocument $doc)
     {
-        // try to get the public key from the certificate
-        $objXMLSecDSig = $this->createXmlSecurityDSig();
+        $objXMLSecDSig = $this->createVerifierXmlSecurityDSig();
         $objDSig = $objXMLSecDSig->locateSignature($doc);
         if (!$objDSig) {
-            return false;
+            return null;
         }
 
         $objKey = $objXMLSecDSig->locateKey();
-        if (!$objKey) {
-            return false;
+        if (!$objKey || !in_array($objKey->getAlgorithm(), static::$signatureAlgorithms, true)) {
+            return null;
         }
 
         XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
-        $this->publicKey = $objKey->getX509Certificate();
-        $this->keyAlgorithm = $objKey->getAlgorithm();
 
-        return true;
+        return $objKey;
     }
 
     private function getNodeSign(DOMDocument $data)
@@ -342,11 +394,32 @@ class SignedXml
     /**
      * @param string $content
      * @return \DOMDocument
+     *
+     * @throws \InvalidArgumentException If the content is not a valid XML document or has a DOCTYPE.
      */
     private function getDocXml($content)
     {
+        if (!is_string($content) || trim($content) === '') {
+            throw new \InvalidArgumentException('XML content is empty.');
+        }
+
         $doc = new \DOMDocument();
-        $doc->loadXML($content);
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $loaded = $doc->loadXML($content, LIBXML_NONET);
+            $error = libxml_get_last_error();
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previous);
+        }
+
+        if (!$loaded) {
+            $message = $error ? trim($error->message) : 'unknown error';
+            throw new \InvalidArgumentException('Invalid XML content: '.$message);
+        }
+        if ($doc->doctype !== null) {
+            throw new \InvalidArgumentException('XML documents with DOCTYPE are not allowed.');
+        }
 
         return $doc;
     }
