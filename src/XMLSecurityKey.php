@@ -6,13 +6,18 @@ use Exception;
 
 class XMLSecurityKey
 {
+    /** @deprecated Cifrado sin autenticación; usar AES256_GCM. Se mantiene por interoperabilidad. */
     const TRIPLEDES_CBC = 'http://www.w3.org/2001/04/xmlenc#tripledes-cbc';
+    /** @deprecated Cifrado sin autenticación (padding oracle); usar AES128_GCM. Se mantiene por interoperabilidad. */
     const AES128_CBC = 'http://www.w3.org/2001/04/xmlenc#aes128-cbc';
+    /** @deprecated Cifrado sin autenticación (padding oracle); usar AES192_GCM. Se mantiene por interoperabilidad. */
     const AES192_CBC = 'http://www.w3.org/2001/04/xmlenc#aes192-cbc';
+    /** @deprecated Cifrado sin autenticación (padding oracle); usar AES256_GCM. Se mantiene por interoperabilidad. */
     const AES256_CBC = 'http://www.w3.org/2001/04/xmlenc#aes256-cbc';
     const AES128_GCM = 'http://www.w3.org/2009/xmlenc11#aes128-gcm';
     const AES192_GCM = 'http://www.w3.org/2009/xmlenc11#aes192-gcm';
     const AES256_GCM = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
+    /** @deprecated Cifrado vulnerable a Bleichenbacher; usar RSA_OAEP o RSA_OAEP_MGF1P. Se mantiene por interoperabilidad. */
     const RSA_1_5 = 'http://www.w3.org/2001/04/xmlenc#rsa-1_5';
     const RSA_OAEP_MGF1P = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
     const RSA_OAEP = 'http://www.w3.org/2009/xmlenc11#rsa-oaep';
@@ -252,7 +257,7 @@ class XMLSecurityKey
         }
         $keysize = $this->cryptParams['keysize'];
         
-        $key = openssl_random_pseudo_bytes($keysize);
+        $key = random_bytes($keysize);
         
         if ($this->type === self::TRIPLEDES_CBC) {
             /* Make sure that the generated key has the proper parity bits set.
@@ -398,12 +403,9 @@ class XMLSecurityKey
      */
     private function encryptSymmetric($data)
     {
-        $this->iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($this->cryptParams['cipher']));
+        $this->iv = random_bytes(openssl_cipher_iv_length($this->cryptParams['cipher']));
         $authTag = null;
         if ($this->isGcmCipher()) {
-            if (version_compare(PHP_VERSION, '7.1.0') < 0) {
-                throw new Exception('PHP 7.1.0 is required to use AES GCM algorithms');
-            }
             $encrypted = openssl_encrypt($data, $this->cryptParams['cipher'], $this->key, OPENSSL_RAW_DATA, $this->iv, $authTag, '', self::AUTHTAG_LENGTH);
         } else {
             $data = $this->padISO10126($data, $this->cryptParams['blocksize']);
@@ -429,9 +431,6 @@ class XMLSecurityKey
         $data = substr($data, $iv_length);
         $authTag = null;
         if ($this->isGcmCipher()) {
-            if (version_compare(PHP_VERSION, '7.1.0') < 0) {
-                throw new Exception('PHP 7.1.0 is required to use AES GCM algorithms');
-            }
             // obtain and remove the authentication tag
             $offset = 0 - self::AUTHTAG_LENGTH;
             $authTag = substr($data, $offset);
@@ -649,32 +648,10 @@ class XMLSecurityKey
                 return $this->verifyOpenSSL($data, $signature);
             case (self::HMAC_SHA1):
                 $expectedSignature = hash_hmac("sha1", $data, $this->key, true);
-                return self::constantTimeEquals($expectedSignature, (string) $signature);
+                return hash_equals($expectedSignature, (string) $signature);
         }
 
         return '';
-    }
-
-    /**
-     * Compares two strings in constant time.
-     *
-     * @param string $known
-     * @param string $user
-     * @return bool
-     */
-    private static function constantTimeEquals($known, $user)
-    {
-        if (function_exists('hash_equals')) {
-            return hash_equals($known, $user);
-        }
-        if (strlen($known) !== strlen($user)) {
-            return false;
-        }
-        $result = 0;
-        for ($i = 0, $len = strlen($known); $i < $len; $i++) {
-            $result |= ord($known[$i]) ^ ord($user[$i]);
-        }
-        return $result === 0;
     }
 
     /**

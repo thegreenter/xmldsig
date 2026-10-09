@@ -20,10 +20,10 @@ incorpora los parches de seguridad que upstream publicó después (3.0.4 en adel
 | 6 | Transform XPath controlado por el documento (DoS) | Media | Verificación | Mitigado en `SignedXml` |
 | 7 | Cifrado XML legado sin autenticación (AES-CBC, 3DES, RSA PKCS#1 v1.5) | Media | `XMLSecEnc` | Parcial: AES-GCM y RSA-OAEP disponibles |
 | 8 | Parseo XML sin endurecer ni validación de errores | Media/Baja | Firma y verificación | Corregido en `SignedXml` |
-| 9 | Plataforma desactualizada: `php >=5.5.9`, sin CI activo, sin dependencias de desarrollo | Baja | Mantenimiento | Pendiente |
-| 10 | Deprecaciones PHP 8.4 (parámetros nullable implícitos) | Baja | Compatibilidad | Pendiente |
-| 11 | `generateGUID()` no usa aleatoriedad criptográfica | Baja | Firma | Pendiente |
-| 12 | Claves privadas de prueba versionadas | Informativo | Repositorio | Pendiente |
+| 9 | Plataforma desactualizada: `php >=5.5.9`, sin CI activo, sin dependencias de desarrollo | Baja | Mantenimiento | Corregido en 6.0.0 |
+| 10 | Deprecaciones PHP 8.4 (parámetros nullable implícitos) | Baja | Compatibilidad | Corregido en 6.0.0 |
+| 11 | `generateGUID()` no usa aleatoriedad criptográfica | Baja | Firma | Corregido en 6.0.0 |
+| 12 | Claves privadas de prueba versionadas | Informativo | Repositorio | Revisado: certificados autofirmados de prueba |
 | 13 | Sin política de reporte de vulnerabilidades (`SECURITY.md`) | Informativo | Repositorio | Pendiente |
 
 ---
@@ -176,7 +176,7 @@ No existe `SECURITY.md`. Recomendado indicar cómo reportar vulnerabilidades de 
 
 ## Estado de las correcciones
 
-Los hallazgos 2, 3, 5 y 8 están corregidos y los hallazgos 1, 4, 6 y 7 mitigados (ver CHANGELOG, sección *Unreleased*).
+Los hallazgos 2, 3, 5, 8, 9, 10 y 11 están corregidos y los hallazgos 1, 4, 6 y 7 mitigados (ver CHANGELOG, versión 6.0.0).
 Cada corrección tiene su prueba en `tests/` (`verify-multiple-signedinfo`, `verify-duplicate-id`,
 `sunat-verify-hardening`, `aes-gcm-roundtrip`).
 

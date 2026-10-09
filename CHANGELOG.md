@@ -1,6 +1,16 @@
 # xmlseclibs
 
-## Unreleased
+## 6.0.0 (sin publicar)
+BREAKING:
+- Requiere PHP >= 8.1.
+
+Mantenimiento:
+- Tipos nullable explícitos (sin deprecaciones en PHP 8.4).
+- `random_bytes()` para IVs, claves de sesión y `generateGUID()`.
+- Algoritmos CBC, 3DES y RSA 1.5 marcados como `@deprecated` (usar AES-GCM y RSA-OAEP).
+- CI con GitHub Actions (PHP 8.1–8.4, `composer audit`) en lugar de Travis; phpunit 10 como dependencia de desarrollo.
+- `tests/SFSCert.pfx` cifrado de nuevo con AES-256/PBKDF2 (OpenSSL 3 ya no lee el formato antiguo).
+
 Seguridad (parches de upstream xmlseclibs 3.0.4 – 3.1.5):
 - Rechazar firmas con más de un `SignedInfo` y procesar sólo `SignedInfo[1]` (CVE-2019-3465, upstream 3.0.4).
 - Lanzar excepción si la canonicalización falla, en lugar de continuar con `false` (bypass de canonicalización, upstream 3.1.4).

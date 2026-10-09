@@ -206,7 +206,7 @@ class SignedXml
     /**
      * @inheritdoc
      */
-    public function getPublicKey(DOMDocument $doc = null)
+    public function getPublicKey(?DOMDocument $doc = null)
     {
         if ($doc) {
             $this->setPublicKeyFromNode($doc);
@@ -470,14 +470,10 @@ class SignedXml
         }
 
         $useErrors = libxml_use_internal_errors(true);
-        $disableEntities = PHP_VERSION_ID < 80000 ? libxml_disable_entity_loader(true) : null;
 
         $doc = new DOMDocument();
         $loaded = $doc->loadXML($content, LIBXML_NONET);
 
-        if ($disableEntities !== null) {
-            libxml_disable_entity_loader($disableEntities);
-        }
         $errors = libxml_get_errors();
         libxml_clear_errors();
         libxml_use_internal_errors($useErrors);

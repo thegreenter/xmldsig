@@ -1,5 +1,5 @@
 # XmlDSig - Greenter
-[![Travis-CI](https://travis-ci.org/giansalex/xmldsig.svg?branch=master)](https://travis-ci.org/giansalex/xmldsig)
+[![CI](https://github.com/thegreenter/xmldsig/actions/workflows/ci.yml/badge.svg)](https://github.com/thegreenter/xmldsig/actions/workflows/ci.yml)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cb56bff3cd1545f2841614448bf31da2)](https://www.codacy.com/app/giansalex/xmldsig?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=giansalex/xmldsig&amp;utm_campaign=Badge_Grade)  
 
 Esta libreria se emplea para firmar comprobantes electrónicos según las normas de SUNAT.
@@ -8,6 +8,8 @@ Se requiere el certificado en formato .PEM, puede utilizar el siguiente ejemplo 
 
 
 ## Instalar:
+
+Requiere PHP 8.1 o superior con las extensiones `dom`, `libxml` y `openssl` (versión 6.x). Para PHP más antiguo usa la serie 5.x, que no recibe estos parches de seguridad.
 
 Empleando composer desde [packagist](https://packagist.org/packages/greenter/xmldsig).  
 
