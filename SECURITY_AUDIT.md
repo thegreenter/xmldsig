@@ -198,5 +198,5 @@ No existe `SECURITY.md`. Recomendado indicar cómo reportar vulnerabilidades de 
 | 9 | Corregido: `php >=8.1`, GitHub Actions 8.1–8.4, PHPUnit 10, `composer audit`, PHPStan. |
 | 10 | Corregido. |
 | 11 | Corregido: `random_bytes()`. |
-| 12 | Revisado: `mycert.pem`/`privkey.pem`/`certificate.pem` son los de prueba de xmlseclibs; `SFSCert.pfx` es autofirmado (certificado de prueba del SFS de SUNAT). |
+| 12 | Revisado: `mycert.pem`/`privkey.pem`/`certificate.pem` son los de prueba de xmlseclibs; `SFSCert.pfx` es autofirmado (`CN=TI SOLUCIONES`, con DNI/RUC en el sujeto, vigente hasta 2039): confirmar que es sólo de prueba. |
 | 13 | Corregido: `SECURITY.md`. |
