@@ -649,10 +649,32 @@ class XMLSecurityKey
                 return $this->verifyOpenSSL($data, $signature);
             case (self::HMAC_SHA1):
                 $expectedSignature = hash_hmac("sha1", $data, $this->key, true);
-                return strcmp($signature, $expectedSignature) == 0;
+                return self::constantTimeEquals($expectedSignature, (string) $signature);
         }
 
         return '';
+    }
+
+    /**
+     * Compares two strings in constant time.
+     *
+     * @param string $known
+     * @param string $user
+     * @return bool
+     */
+    private static function constantTimeEquals($known, $user)
+    {
+        if (function_exists('hash_equals')) {
+            return hash_equals($known, $user);
+        }
+        if (strlen($known) !== strlen($user)) {
+            return false;
+        }
+        $result = 0;
+        for ($i = 0, $len = strlen($known); $i < $len; $i++) {
+            $result |= ord($known[$i]) ^ ord($user[$i]);
+        }
+        return $result === 0;
     }
 
     /**

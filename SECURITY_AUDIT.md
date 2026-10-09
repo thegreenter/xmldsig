@@ -10,21 +10,21 @@ incorpora los parches de seguridad que upstream publicó después (3.0.4 en adel
 —**firmar** comprobantes SUNAT con el certificado propio— el riesgo es bajo. El riesgo real está en la
 **verificación** de XML recibidos de terceros, donde la API actual no garantiza quién firmó el documento.
 
-| # | Hallazgo | Severidad | Afecta a |
-|---|----------|-----------|----------|
-| 1 | `verifyXml()` confía en el certificado incrustado en el propio XML | **Alta** | Verificación |
-| 2 | Múltiples `SignedInfo` aceptados (CVE-2019-3465 de upstream) | Media | Verificación (API de bajo nivel) |
-| 3 | Búsqueda de referencias por `Id` sin rechazar duplicados (signature wrapping) | Media | Verificación (API de bajo nivel) |
-| 4 | Algoritmos débiles por defecto y aceptados sin restricción (SHA-1, RIPEMD-160, DSA-SHA1, HMAC-SHA1) | Media | Firma y verificación |
-| 5 | Confusión de algoritmo HMAC / comparación no constante | Media | Verificación (API de bajo nivel) |
-| 6 | Transform XPath controlado por el documento (DoS) | Media | Verificación |
-| 7 | Cifrado XML legado sin autenticación (AES-CBC, 3DES, RSA PKCS#1 v1.5) | Media | `XMLSecEnc` |
-| 8 | Parseo XML sin endurecer ni validación de errores | Media/Baja | Firma y verificación |
-| 9 | Plataforma desactualizada: `php >=5.5.9`, sin CI activo, sin dependencias de desarrollo | Baja | Mantenimiento |
-| 10 | Deprecaciones PHP 8.4 (parámetros nullable implícitos) | Baja | Compatibilidad |
-| 11 | `generateGUID()` no usa aleatoriedad criptográfica | Baja | Firma |
-| 12 | Claves privadas de prueba versionadas | Informativo | Repositorio |
-| 13 | Sin política de reporte de vulnerabilidades (`SECURITY.md`) | Informativo | Repositorio |
+| # | Hallazgo | Severidad | Afecta a | Estado |
+|---|----------|-----------|----------|--------|
+| 1 | `verifyXml()` confía en el certificado incrustado en el propio XML | **Alta** | Verificación | Mitigado: `setTrustedCertificate()` (opcional) |
+| 2 | Múltiples `SignedInfo` aceptados (CVE-2019-3465 de upstream) | Media | Verificación (API de bajo nivel) | Corregido |
+| 3 | Búsqueda de referencias por `Id` sin rechazar duplicados (signature wrapping) | Media | Verificación (API de bajo nivel) | Corregido |
+| 4 | Algoritmos débiles por defecto y aceptados sin restricción (SHA-1, RIPEMD-160, DSA-SHA1, HMAC-SHA1) | Media | Firma y verificación | Mitigado: lista blanca en `SignedXml` y setters |
+| 5 | Confusión de algoritmo HMAC / comparación no constante | Media | Verificación (API de bajo nivel) | Corregido |
+| 6 | Transform XPath controlado por el documento (DoS) | Media | Verificación | Mitigado en `SignedXml` |
+| 7 | Cifrado XML legado sin autenticación (AES-CBC, 3DES, RSA PKCS#1 v1.5) | Media | `XMLSecEnc` | Parcial: AES-GCM y RSA-OAEP disponibles |
+| 8 | Parseo XML sin endurecer ni validación de errores | Media/Baja | Firma y verificación | Corregido en `SignedXml` |
+| 9 | Plataforma desactualizada: `php >=5.5.9`, sin CI activo, sin dependencias de desarrollo | Baja | Mantenimiento | Pendiente |
+| 10 | Deprecaciones PHP 8.4 (parámetros nullable implícitos) | Baja | Compatibilidad | Pendiente |
+| 11 | `generateGUID()` no usa aleatoriedad criptográfica | Baja | Firma | Pendiente |
+| 12 | Claves privadas de prueba versionadas | Informativo | Repositorio | Pendiente |
+| 13 | Sin política de reporte de vulnerabilidades (`SECURITY.md`) | Informativo | Repositorio | Pendiente |
 
 ---
 
@@ -173,6 +173,12 @@ No existe `SECURITY.md`. Recomendado indicar cómo reportar vulnerabilidades de 
 (GitHub Security Advisories).
 
 ---
+
+## Estado de las correcciones
+
+Los hallazgos 2, 3, 5 y 8 están corregidos y los hallazgos 1, 4, 6 y 7 mitigados (ver CHANGELOG, sección *Unreleased*).
+Cada corrección tiene su prueba en `tests/` (`verify-multiple-signedinfo`, `verify-duplicate-id`,
+`sunat-verify-hardening`, `aes-gcm-roundtrip`).
 
 ## Prioridad sugerida
 

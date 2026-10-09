@@ -479,7 +479,15 @@ class XMLSecurityDSig
                         }
                     }
                     $query = '//*['.$iDlist.']';
-                    $dataObject = $xPath->query($query)->item(0);
+                    $nodeset = $xPath->query($query);
+                    if ($nodeset->length > 1) {
+                        /* Several elements with the same ID allow signature wrapping attacks. */
+                        throw new Exception("Duplicate ID found: $identifier");
+                    }
+                    $dataObject = $nodeset->item(0);
+                    if ($dataObject === null) {
+                        return false;
+                    }
                 } else {
                     $dataObject = $refNode->ownerDocument;
                 }

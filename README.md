@@ -86,19 +86,29 @@ Despues:
 propio XML**. Por eso no comprueba quién firmó: un documento modificado y firmado de nuevo con cualquier certificado
 (incluso uno autofirmado) también devuelve `true`.
 
-Si vas a verificar comprobantes de terceros, valida tú mismo el certificado antes de confiar en el resultado:
+Si vas a verificar comprobantes de terceros, indica el certificado del emisor en el que confías:
 
 ```php
-$doc = new DOMDocument();
-$doc->loadXML($xml, LIBXML_NONET);
-$signer = new SignedXml();
-$cert = $signer->getPublicKey($doc); // certificado incluido en el XML
+$verifier = new SignedXml();
+$verifier->setTrustedCertificate(file_get_contents('emisor-cert.pem')); // sólo el certificado (PEM)
 
-// Ejemplo: comparar con la huella del certificado esperado del emisor
-if (openssl_x509_fingerprint($cert, 'sha256') !== $huellaEsperada) {
-    throw new Exception('Certificado no confiable');
-}
-$valido = $signer->verify($doc);
+$valido = $verifier->verifyXml($xml); // false si lo firmó otro certificado
+```
+
+Además, `verify()`/`verifyXml()`:
+- rechazan XML con `DOCTYPE` o mal formados (`InvalidArgumentException`);
+- sólo aceptan firmas RSA-SHA1/256/384/512, digest SHA-1/256/384/512, C14N/Exc-C14N y la transformación
+  *enveloped-signature* (se rechazan HMAC, DSA, RIPEMD-160 y transformaciones XPath);
+- rechazan firmas con varios `SignedInfo` o referencias a IDs duplicados.
+
+Para firmar con SHA-256 (si la normativa lo permite):
+
+```php
+use Greenter\XMLSecLibs\XMLSecurityDSig;
+use Greenter\XMLSecLibs\XMLSecurityKey;
+
+$signer->setKeyAlgorithm(XMLSecurityKey::RSA_SHA256);
+$signer->setDigestAlgorithm(XMLSecurityDSig::SHA256);
 ```
 
 Consulta [SECURITY_AUDIT.md](SECURITY_AUDIT.md) para el detalle de la auditoría de seguridad.

@@ -10,6 +10,15 @@ Seguridad (parches de upstream xmlseclibs 3.0.4 – 3.1.5):
 - Eliminar tabuladores al leer `X509Certificate` (upstream 3.1.2).
 - `X509SubjectName` usaba el emisor en lugar del sujeto del certificado.
 
+Seguridad (endurecimiento de la verificación):
+- `SignedXml::setTrustedCertificate()`: verificar sólo firmas hechas con un certificado de confianza.
+- `SignedXml::verify()` acepta únicamente RSA-SHA1/256/384/512, digest SHA-1/256/384/512, C14N/Exc-C14N y
+  *enveloped-signature* (se rechazan HMAC, DSA, RIPEMD-160 y transformaciones XPath).
+- Rechazar referencias a IDs duplicados (signature wrapping).
+- Comparación HMAC en tiempo constante.
+- `SignedXml` rechaza XML con `DOCTYPE` o mal formados y no accede a la red al parsear (`LIBXML_NONET`).
+- Nuevos setters `setKeyAlgorithm()`, `setDigestAlgorithm()` y `setCanonicalMethod()` (por defecto RSA-SHA1/SHA1/C14N).
+
 ## 15 Feb 2018, 5.0.0
 - Rename sunatxmladapter to SignedXml
 - Remove adaptesecadapter
