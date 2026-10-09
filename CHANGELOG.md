@@ -1,5 +1,15 @@
 # xmlseclibs
 
+## Unreleased, 6.0.0
+Upstream (robrichards/xmlseclibs 3.0.4 - 3.1.5):
+- Reject signatures with more than one `SignedInfo` and only process `SignedInfo[1]` (CVE-2019-3465).
+- Throw when canonicalization fails instead of signing/verifying `false` (3.1.4, canonicalization bypass).
+- Add AES-GCM (`AES128_GCM`, `AES192_GCM`, `AES256_GCM`) and validate the authentication tag length (3.1.0, 3.1.5).
+- Add `RSA_OAEP` (xmlenc11) key transport (3.1.1).
+- Support `InclusiveNamespaces PrefixList` in `CanonicalizationMethod` (3.1.0).
+- Strip tabs from `X509Certificate` values (3.1.2).
+- Fix `X509SubjectName` using the issuer when the subject is a string.
+
 ## 15 Feb 2018, 5.0.0
 - Rename sunatxmladapter to SignedXml
 - Remove adaptesecadapter
