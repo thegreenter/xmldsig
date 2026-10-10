@@ -77,7 +77,7 @@ class X509Certificate
      */
     public function getIssuer()
     {
-        return $this->getSubjectValue('subject');
+        return $this->getSubjectValue('issuer');
     }
 
     /**

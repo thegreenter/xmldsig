@@ -8,6 +8,8 @@ Se requiere el certificado en formato .PEM, puede utilizar el siguiente ejemplo 
 
 ## Instalar:
 
+Requiere PHP >= 8.1 con las extensiones `dom`, `libxml` y `openssl`.
+
 Empleando composer desde [packagist](https://packagist.org/packages/greenter/xmldsig).  
 
 ```bash
@@ -93,4 +95,30 @@ $signer->setSignatureAlgorithm(XMLSecurityKey::RSA_SHA256);
 $signer->setDigestAlgorithm(XMLSecurityDSig::SHA256);
 ```
 
-`verifyXml()` toma el certificado y el algoritmo del XML verificado y los deja en la instancia: usa una instancia distinta para firmar y para verificar.
+También se puede usar canonicalización exclusiva con `$signer->setCanonicalMethod(XMLSecurityDSig::EXC_C14N)` (por defecto `C14N`).
+
+## Verificar
+
+```php
+use Greenter\XMLSecLibs\Sunat\SignedXml;
+
+$verifier = new SignedXml();
+$verifier->setCertificateFromFile('emisor.pem'); // certificado esperado del emisor
+
+$isValid = $verifier->verifyXml(file_get_contents('20600995805-01-F001-1.xml'));
+```
+
+- Con un certificado configurado, la firma se verifica con **ese** certificado: un XML firmado con otra clave devuelve `false`.
+- Sin certificado configurado, se usa el certificado incluido en el propio XML: `true` sólo indica que el documento
+  no fue alterado después de firmarse, **no quién lo firmó** (cualquiera puede modificar un comprobante y volver a firmarlo).
+  Para XML de terceros obtén el certificado con `$verifier->getPublicKey($doc)` y valídalo antes de confiar en él
+  (huella con `openssl_x509_fingerprint($cert, 'sha256')`, cadena contra la CA, vigencia y que el RUC coincida con el emisor).
+- Sólo se aceptan firmas RSA-SHA1/RSA-SHA256, digest SHA-1/SHA-256 y transformaciones `enveloped-signature` + C14N;
+  cualquier otro algoritmo devuelve `false`.
+- `verifyXml()` no modifica el certificado ni los algoritmos configurados en la instancia.
+
+## Seguridad
+
+- Se rechazan documentos con `DOCTYPE`, XML inválido, firmas con más de un `SignedInfo`, referencias a `Id` duplicados
+  o externas y transformaciones XPath o desconocidas.
+- Para reportar una vulnerabilidad revisa [SECURITY.md](SECURITY.md).

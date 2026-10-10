@@ -1,5 +1,41 @@
 # xmlseclibs
 
+## Unreleased (major)
+Upstream (robrichards/xmlseclibs 3.0.4 - 3.1.5):
+- Reject signatures with more than one `SignedInfo` and only process `SignedInfo[1]` (CVE-2019-3465).
+- Throw when canonicalization fails instead of signing/verifying `false` (3.1.4, canonicalization bypass).
+- Add AES-GCM (`AES128_GCM`, `AES192_GCM`, `AES256_GCM`) and validate the authentication tag length (3.1.0, 3.1.5).
+- Add `RSA_OAEP` (xmlenc11) key transport (3.1.1).
+- Support `InclusiveNamespaces PrefixList` in `CanonicalizationMethod` (3.1.0).
+- Strip tabs from `X509Certificate` values (3.1.2).
+- Fix `X509SubjectName` using the issuer when the subject is a string.
+
+Security (see SECURITY_AUDIT.md):
+- `SignedXml::verifyXml()` verifies with the configured certificate when there is one, and no longer replaces the
+  configured certificate/algorithm with the ones of the verified document. `getPublicKey($doc)` returns the embedded
+  certificate without changing the instance.
+- `SignedXml` verification only accepts RSA-SHA1/RSA-SHA256, SHA-1/SHA-256 digests and enveloped-signature + C14N
+  transforms. Add `SignedXml::setCanonicalMethod()` (C14N, EXC-C14N).
+- `SignedXml` rejects empty/invalid XML and documents with DOCTYPE, and parses with `LIBXML_NONET`.
+- Reject Reference URIs that are external, unresolved or match more than one `Id` (signature wrapping).
+- Reject XPath transforms during verification (`XMLSecurityDSig::$allowXPathTransforms`) and unknown transforms
+  or canonicalization methods.
+- Add `XMLSecurityDSig::$allowedSignatureAlgorithms`, `$allowedDigestAlgorithms`, `$allowedTransforms`.
+- `XMLSecurityDSig::verify()` requires the key algorithm to match the document `SignatureMethod`; asymmetric key
+  material cannot be loaded as an HMAC key; HMAC and digest comparisons use `hash_equals()`.
+- Reject documents with DOCTYPE in `XMLSecurityDSig::locateSignature()` (`XMLSecurityDSig::$forbidDoctype`).
+- Validate ISO 10126 padding on CBC decryption, parse decrypted XML with `LIBXML_NONET` rejecting DOCTYPE and bound
+  nested `EncryptedKey`/`RetrievalMethod` references. CBC/3DES and RSA-1_5 are deprecated in favour of AES-GCM/RSA-OAEP.
+- `generateGUID()`, session keys and IVs use `random_bytes()`.
+
+Platform:
+- Require PHP >= 8.1 (and `ext-libxml`).
+- Fix PHP 8.4 implicit nullable deprecation in `SignedXml::getPublicKey()` and a float to int conversion in
+  `XMLSecurityKey::makeAsnSegment()`.
+- GitHub Actions on PHP 8.1 - 8.4 with PHPUnit 10, `composer audit` and PHPStan; remove Travis CI.
+- Add `SECURITY.md`.
+- Fix `X509Certificate::getIssuer()` returning the subject.
+
 ## 15 Feb 2018, 5.0.0
 - Rename sunatxmladapter to SignedXml
 - Remove adaptesecadapter

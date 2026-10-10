@@ -21,6 +21,12 @@ class XMLSecEnc
     const URI = 3;
     const XMLENCNS = 'http://www.w3.org/2001/04/xmlenc#';
 
+    /** Maximum nesting of EncryptedKey / RetrievalMethod references. */
+    const MAX_KEY_REFERENCE_DEPTH = 4;
+
+    /** @var int */
+    private static $keyReferenceDepth = 0;
+
     /** @var null|DOMDocument */
     private $encdoc = null;
 
@@ -227,8 +233,7 @@ class XMLSecEnc
             if ($replace) {
                 switch ($this->type) {
                     case (self::ELEMENT):
-                        $newdoc = new DOMDocument();
-                        $newdoc->loadXML($decrypted);
+                        $newdoc = self::loadDecryptedXml($decrypted);
                         if ($this->rawNode->nodeType == XML_DOCUMENT_NODE) {
                             return $newdoc;
                         }
@@ -242,7 +247,9 @@ class XMLSecEnc
                             $doc = $this->rawNode->ownerDocument;
                         }
                         $newFrag = $doc->createDocumentFragment();
-                        $newFrag->appendXML($decrypted);
+                        if (! $newFrag->appendXML($decrypted)) {
+                            throw new Exception('Unable to parse decrypted content');
+                        }
                         $parent = $this->rawNode->parentNode;
                         $parent->replaceChild($newFrag, $this->rawNode);
                         return $parent;
@@ -255,6 +262,33 @@ class XMLSecEnc
         } else {
             throw new Exception("Cannot locate encrypted data");
         }
+    }
+
+    /**
+     * Parse decrypted XML without network access and rejecting DOCTYPE.
+     *
+     * @param string $xml
+     * @return DOMDocument
+     * @throws Exception
+     */
+    private static function loadDecryptedXml($xml)
+    {
+        $doc = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $loaded = $xml !== '' && $doc->loadXML($xml, LIBXML_NONET);
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previous);
+        }
+        if (! $loaded) {
+            throw new Exception('Unable to parse decrypted XML');
+        }
+        if ($doc->doctype !== null) {
+            throw new Exception('A DOCTYPE is not allowed in decrypted XML');
+        }
+
+        return $doc;
     }
 
     /**
@@ -429,7 +463,7 @@ class XMLSecEnc
                         break;
                     }
                     $uri = $child->getAttribute('URI');
-                    if ($uri[0] !== '#') {
+                    if ($uri === '' || $uri[0] !== '#') {
                         /* URI not a reference - unsupported. */
                         break;
                     }
@@ -441,14 +475,14 @@ class XMLSecEnc
                         throw new Exception("Unable to locate EncryptedKey with @Id='$id'.");
                     }
 
-                    return XMLSecurityKey::fromEncryptedKeyElement($keyElement);
+                    return self::keyFromEncryptedKeyElement($keyElement);
                 case 'EncryptedKey':
-                    return XMLSecurityKey::fromEncryptedKeyElement($child);
+                    return self::keyFromEncryptedKeyElement($child);
                 case 'X509Data':
                     if ($x509certNodes = $child->getElementsByTagName('X509Certificate')) {
                         if ($x509certNodes->length > 0) {
                             $x509cert = $x509certNodes->item(0)->textContent;
-                            $x509cert = str_replace(array("\r", "\n", " "), "", $x509cert);
+                            $x509cert = str_replace(array("\r", "\n", " ", "\t"), "", $x509cert);
                             $x509cert = "-----BEGIN CERTIFICATE-----\n".chunk_split($x509cert, 64, "\n")."-----END CERTIFICATE-----\n";
                             $objBaseKey->loadKey($x509cert, false, true);
                         }
@@ -457,6 +491,27 @@ class XMLSecEnc
             }
         }
         return $objBaseKey;
+    }
+
+    /**
+     * Resolve an EncryptedKey, bounding the nesting of key references.
+     *
+     * @param DOMElement $element
+     * @return XMLSecurityKey
+     * @throws Exception
+     */
+    private static function keyFromEncryptedKeyElement(DOMElement $element)
+    {
+        if (self::$keyReferenceDepth >= self::MAX_KEY_REFERENCE_DEPTH) {
+            throw new Exception('Too many nested EncryptedKey references');
+        }
+
+        self::$keyReferenceDepth++;
+        try {
+            return XMLSecurityKey::fromEncryptedKeyElement($element);
+        } finally {
+            self::$keyReferenceDepth--;
+        }
     }
 
     /**

@@ -21,6 +21,8 @@ class XMLSecurityDSig
     const C14N_COMMENTS = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments';
     const EXC_C14N = 'http://www.w3.org/2001/10/xml-exc-c14n#';
     const EXC_C14N_COMMENTS = 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments';
+    const ENVELOPED = 'http://www.w3.org/2000/09/xmldsig#enveloped-signature';
+    const XPATH = 'http://www.w3.org/TR/1999/REC-xpath-19991116';
 
     const template = '<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <ds:SignedInfo>
@@ -38,6 +40,52 @@ class XMLSecurityDSig
 
     /** @var array */
     public $idNS = array();
+
+    /**
+     * Allow XPath (REC-xpath-19991116) Transforms while verifying references.
+     *
+     * The expression comes from the document being verified and is evaluated
+     * before any cryptographic check, so a crafted expression is a CPU/memory
+     * denial of service. Signing is unaffected.
+     *
+     * @var bool
+     */
+    public $allowXPathTransforms = false;
+
+    /**
+     * Allowlist of SignatureMethod algorithm URIs accepted by verify().
+     * Null means no restriction.
+     *
+     * @var array|null
+     */
+    public $allowedSignatureAlgorithms = null;
+
+    /**
+     * Allowlist of DigestMethod algorithm URIs accepted while validating references.
+     * Null means no restriction.
+     *
+     * @var array|null
+     */
+    public $allowedDigestAlgorithms = null;
+
+    /**
+     * Allowlist of Transform algorithm URIs accepted while validating references.
+     * Null means any supported transform. Unknown transforms are always rejected.
+     *
+     * @var array|null
+     */
+    public $allowedTransforms = null;
+
+    /**
+     * Reject documents that carry a DOCTYPE when locating a Signature.
+     *
+     * Entity references in Id attributes are resolved by getAttribute() but are
+     * invisible to the XPath reference lookup, so the signature could validate a
+     * different node than the one read by the application (CVE-2025-23369).
+     *
+     * @var bool
+     */
+    public $forbidDoctype = true;
 
     /** @var string|null */
     private $signedInfo = null;
@@ -109,7 +157,7 @@ class XMLSecurityDSig
      */
     public static function generateGUID($prefix='pfx')
     {
-        $uuid = md5(uniqid(mt_rand(), true));
+        $uuid = bin2hex(random_bytes(16));
         $guid = $prefix.substr($uuid, 0, 8)."-".
                 substr($uuid, 8, 4)."-".
                 substr($uuid, 12, 4)."-".
@@ -139,14 +187,28 @@ class XMLSecurityDSig
      */
     public function locateSignature($objDoc, $pos=0)
     {
+        /* Drop any XPath context bound to a previous document. */
+        $this->resetXPathObj();
+
         $doc = $objDoc instanceof DOMDocument ? $objDoc : $objDoc->ownerDocument;
 
         if ($doc) {
+            if ($this->forbidDoctype && $doc->doctype !== null) {
+                throw new Exception('A DOCTYPE is not allowed in a document being verified');
+            }
             $xpath = new DOMXPath($doc);
             $xpath->registerNamespace('secdsig', self::XMLDSIGNS);
             $query = ".//secdsig:Signature";
             $nodeset = $xpath->query($query, $objDoc);
             $this->sigNode = $nodeset->item($pos);
+            if (! $this->sigNode) {
+                return null;
+            }
+            $query = "./secdsig:SignedInfo";
+            $nodeset = $xpath->query($query, $this->sigNode);
+            if ($nodeset->length > 1) {
+                throw new Exception("Invalid structure - Too many SignedInfo elements found");
+            }
             return $this->sigNode;
         }
 
@@ -189,7 +251,7 @@ class XMLSecurityDSig
             $query = './'.$this->searchpfx.':SignedInfo';
             $nodeset = $xpath->query($query, $this->sigNode);
             if ($sinfo = $nodeset->item(0)) {
-                $query = './'.$this->searchpfx.'CanonicalizationMethod';
+                $query = './'.$this->searchpfx.':CanonicalizationMethod';
                 $nodeset = $xpath->query($query, $sinfo);
                 if (! ($canonNode = $nodeset->item(0))) {
                     $canonNode = $this->createNewSignNode('CanonicalizationMethod');
@@ -242,7 +304,11 @@ class XMLSecurityDSig
             }
         }
 
-        return $node->C14N($exclusive, $withComments, $arXPath, $prefixList);
+        $ret = $node->C14N($exclusive, $withComments, $arXPath, $prefixList);
+        if ($ret === false) {
+            throw new Exception("Canonicalization failed");
+        }
+        return $ret;
     }
 
     /**
@@ -257,13 +323,30 @@ class XMLSecurityDSig
             $xpath = $this->getXPathObj();
             $query = "./secdsig:SignedInfo";
             $nodeset = $xpath->query($query, $this->sigNode);
+            if ($nodeset->length > 1) {
+                throw new Exception("Invalid structure - Too many SignedInfo elements found");
+            }
             if ($signInfoNode = $nodeset->item(0)) {
                 $query = "./secdsig:CanonicalizationMethod";
                 $nodeset = $xpath->query($query, $signInfoNode);
+                $prefixList = null;
                 if ($canonNode = $nodeset->item(0)) {
                     $canonicalmethod = $canonNode->getAttribute('Algorithm');
+                    foreach ($canonNode->childNodes as $node) {
+                        if ($node->localName == 'InclusiveNamespaces') {
+                            if ($pfx = $node->getAttribute('PrefixList')) {
+                                $arpfx = array_filter(explode(' ', $pfx));
+                                if (count($arpfx) > 0) {
+                                    $prefixList = array_merge($prefixList ? $prefixList : array(), $arpfx);
+                                }
+                            }
+                        }
+                    }
                 }
-                $this->signedInfo = $this->canonicalizeData($signInfoNode, $canonicalmethod);
+                if (! in_array($canonicalmethod, array(self::C14N, self::C14N_COMMENTS, self::EXC_C14N, self::EXC_C14N_COMMENTS), true)) {
+                    throw new Exception("Unsupported CanonicalizationMethod: '$canonicalmethod'");
+                }
+                $this->signedInfo = $this->canonicalizeData($signInfoNode, $canonicalmethod, null, $prefixList);
                 return $this->signedInfo;
             }
         }
@@ -317,21 +400,36 @@ class XMLSecurityDSig
     {
         $xpath = new DOMXPath($refNode->ownerDocument);
         $xpath->registerNamespace('secdsig', self::XMLDSIGNS);
-        $query = 'string(./secdsig:DigestMethod/@Algorithm)';
-        $digestAlgorithm = $xpath->evaluate($query, $refNode);
+        $nodeset = $xpath->query('./secdsig:DigestMethod', $refNode);
+        if ($nodeset->length !== 1) {
+            throw new Exception('Invalid structure - Expected exactly one DigestMethod element');
+        }
+        $digestAlgorithm = $nodeset->item(0)->getAttribute('Algorithm');
+        if ($this->allowedDigestAlgorithms !== null
+            && ! in_array($digestAlgorithm, $this->allowedDigestAlgorithms, true)) {
+            throw new Exception("DigestMethod algorithm is not allowed: '$digestAlgorithm'");
+        }
         $digValue = $this->calculateDigest($digestAlgorithm, $data, false);
-        $query = 'string(./secdsig:DigestValue)';
-        $digestValue = $xpath->evaluate($query, $refNode);
-        return ($digValue === base64_decode($digestValue));
+        $nodeset = $xpath->query('./secdsig:DigestValue', $refNode);
+        if ($nodeset->length !== 1) {
+            throw new Exception('Invalid structure - Expected exactly one DigestValue element');
+        }
+        $digestValue = base64_decode($nodeset->item(0)->textContent, true);
+        if ($digestValue === false) {
+            return false;
+        }
+        return hash_equals($digValue, $digestValue);
     }
 
     /**
      * @param $refNode
      * @param DOMNode $objData
      * @param bool $includeCommentNodes
+     * @param bool $signing True when the transforms were supplied by the signer (not by the document).
      * @return string
+     * @throws Exception
      */
-    public function processTransforms($refNode, $objData, $includeCommentNodes = true)
+    public function processTransforms($refNode, $objData, $includeCommentNodes = true, $signing = false)
     {
         $data = $objData;
         $xpath = new DOMXPath($refNode->ownerDocument);
@@ -343,6 +441,10 @@ class XMLSecurityDSig
         $prefixList = null;
         foreach ($nodelist AS $transform) {
             $algorithm = $transform->getAttribute("Algorithm");
+            if (! $signing && $this->allowedTransforms !== null
+                && ! in_array($algorithm, $this->allowedTransforms, true)) {
+                throw new Exception("Transform algorithm is not allowed: '$algorithm'");
+            }
             switch ($algorithm) {
                 case 'http://www.w3.org/2001/10/xml-exc-c14n#':
                 case 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments':
@@ -389,7 +491,13 @@ class XMLSecurityDSig
                     }
 
                     break;
-                case 'http://www.w3.org/TR/1999/REC-xpath-19991116':
+                case self::ENVELOPED:
+                    /* The Signature node is detached by validateReference(). */
+                    break;
+                case self::XPATH:
+                    if (! $signing && ! $this->allowXPathTransforms) {
+                        throw new Exception('XPath Transforms are not allowed during verification');
+                    }
                     $node = $transform->firstChild;
                     while ($node) {
                         if ($node->localName == 'XPath') {
@@ -407,6 +515,8 @@ class XMLSecurityDSig
                         $node = $node->nextSibling;
                     }
                     break;
+                default:
+                    throw new Exception("Unsupported Transform algorithm: '$algorithm'");
             }
         }
         if ($data instanceof DOMNode) {
@@ -422,49 +532,44 @@ class XMLSecurityDSig
      */
     public function processRefNode($refNode)
     {
-        $dataObject = null;
-
         /*
-         * Depending on the URI, we may not want to include comments in the result
+         * Only same-document references are supported (empty URI or "#identifier"),
+         * and they should not include comments.
          * See: http://www.w3.org/TR/xmldsig-core/#sec-ReferenceProcessingModel
          */
-        $includeCommentNodes = true;
+        $includeCommentNodes = false;
+        $identifier = null;
 
-        if ($uri = $refNode->getAttribute("URI")) {
-            $arUrl = parse_url($uri);
-            if (empty($arUrl['path'])) {
-                if ($identifier = $arUrl['fragment']) {
+        if ($refNode->getAttribute("URI") !== '') {
+            $identifier = $this->getRefNodeID($refNode);
+            if ($identifier === null) {
+                throw new Exception('Reference URI must be a same-document reference');
+            }
 
-                    /* This reference identifies a node with the given id by using
-                     * a URI on the form "#identifier". This should not include comments.
-                     */
-                    $includeCommentNodes = false;
-
-                    $xPath = new DOMXPath($refNode->ownerDocument);
-                    if ($this->idNS && is_array($this->idNS)) {
-                        foreach ($this->idNS as $nspf => $ns) {
-                            $xPath->registerNamespace($nspf, $ns);
-                        }
-                    }
-                    $iDlist = '@Id="'.XPath::filterAttrValue($identifier, XPath::DOUBLE_QUOTE).'"';
-                    if (is_array($this->idKeys)) {
-                        foreach ($this->idKeys as $idKey) {
-                            $iDlist .= ' or @'.XPath::filterAttrName($idKey).'="'.
-                                XPath::filterAttrValue($identifier, XPath::DOUBLE_QUOTE).'"';
-                        }
-                    }
-                    $query = '//*['.$iDlist.']';
-                    $dataObject = $xPath->query($query)->item(0);
-                } else {
-                    $dataObject = $refNode->ownerDocument;
+            $xPath = new DOMXPath($refNode->ownerDocument);
+            if ($this->idNS && is_array($this->idNS)) {
+                foreach ($this->idNS as $nspf => $ns) {
+                    $xPath->registerNamespace($nspf, $ns);
                 }
             }
+            $iDlist = '@Id="'.XPath::filterAttrValue($identifier, XPath::DOUBLE_QUOTE).'"';
+            if (is_array($this->idKeys)) {
+                foreach ($this->idKeys as $idKey) {
+                    $iDlist .= ' or @'.XPath::filterAttrName($idKey).'="'.
+                        XPath::filterAttrValue($identifier, XPath::DOUBLE_QUOTE).'"';
+                }
+            }
+            $query = '//*['.$iDlist.']';
+            $nodeset = $xPath->query($query);
+            if ($nodeset->length === 0) {
+                throw new Exception('Reference URI does not identify a node');
+            }
+            if ($nodeset->length > 1) {
+                throw new Exception('Reference URI identifies multiple nodes');
+            }
+            $dataObject = $nodeset->item(0);
         } else {
-            /* This reference identifies the root node with an empty URI. This should
-             * not include comments.
-             */
-            $includeCommentNodes = false;
-
+            /* This reference identifies the root node with an empty URI. */
             $dataObject = $refNode->ownerDocument;
         }
         $data = $this->processTransforms($refNode, $dataObject, $includeCommentNodes);
@@ -472,13 +577,11 @@ class XMLSecurityDSig
             return false;
         }
 
-        if ($dataObject instanceof DOMNode) {
-            /* Add this node to the list of validated nodes. */
-            if (! empty($identifier)) {
-                $this->validatedNodes[$identifier] = $dataObject;
-            } else {
-                $this->validatedNodes[] = $dataObject;
-            }
+        /* Add this node to the list of validated nodes. */
+        if ($identifier !== null) {
+            $this->validatedNodes[$identifier] = $dataObject;
+        } else {
+            $this->validatedNodes[] = $dataObject;
         }
 
         return true;
@@ -492,10 +595,8 @@ class XMLSecurityDSig
     {
         if ($uri = $refNode->getAttribute("URI")) {
             $arUrl = parse_url($uri);
-            if (empty($arUrl['path'])) {
-                if ($identifier = $arUrl['fragment']) {
-                    return $identifier;
-                }
+            if ($arUrl !== false && count($arUrl) === 1 && isset($arUrl['fragment']) && $arUrl['fragment'] !== '') {
+                return $arUrl['fragment'];
             }
         }
         return null;
@@ -510,7 +611,7 @@ class XMLSecurityDSig
         $refids = array();
 
         $xpath = $this->getXPathObj();
-        $query = "./secdsig:SignedInfo/secdsig:Reference";
+        $query = "./secdsig:SignedInfo[1]/secdsig:Reference";
         $nodeset = $xpath->query($query, $this->sigNode);
         if ($nodeset->length == 0) {
             throw new Exception("Reference nodes not found");
@@ -534,7 +635,7 @@ class XMLSecurityDSig
             }
         }
         $xpath = $this->getXPathObj();
-        $query = "./secdsig:SignedInfo/secdsig:Reference";
+        $query = "./secdsig:SignedInfo[1]/secdsig:Reference";
         $nodeset = $xpath->query($query, $this->sigNode);
         if ($nodeset->length == 0) {
             throw new Exception("Reference nodes not found");
@@ -627,7 +728,7 @@ class XMLSecurityDSig
             $transNode->setAttribute('Algorithm', $this->canonicalMethod);
         }
 
-        $canonicalData = $this->processTransforms($refNode, $node);
+        $canonicalData = $this->processTransforms($refNode, $node, true, true);
         $digValue = $this->calculateDigest($algorithm, $canonicalData);
 
         $digestMethod = $this->createNewSignNode('DigestMethod');
@@ -753,12 +854,36 @@ class XMLSecurityDSig
         $doc = $this->sigNode->ownerDocument;
         $xpath = new DOMXPath($doc);
         $xpath->registerNamespace('secdsig', self::XMLDSIGNS);
-        $query = "string(./secdsig:SignatureValue)";
-        $sigValue = $xpath->evaluate($query, $this->sigNode);
-        if (empty($sigValue)) {
+
+        $nodeset = $xpath->query("./secdsig:SignedInfo[1]/secdsig:SignatureMethod", $this->sigNode);
+        if ($nodeset->length !== 1) {
+            throw new Exception('Invalid structure - Expected exactly one SignatureMethod element');
+        }
+        $sigMethod = $nodeset->item(0)->getAttribute('Algorithm');
+
+        /* The algorithm of the key must be the one declared by the document,
+         * otherwise a public key could be used as an HMAC secret. */
+        if ($objKey->type !== $sigMethod) {
+            throw new Exception('SignatureMethod algorithm does not match the supplied key type');
+        }
+        if ($this->allowedSignatureAlgorithms !== null
+            && ! in_array($sigMethod, $this->allowedSignatureAlgorithms, true)) {
+            throw new Exception("SignatureMethod algorithm is not allowed: '$sigMethod'");
+        }
+
+        $nodeset = $xpath->query("./secdsig:SignatureValue", $this->sigNode);
+        if ($nodeset->length !== 1) {
+            throw new Exception('Invalid structure - Expected exactly one SignatureValue element');
+        }
+        $sigValue = $nodeset->item(0)->textContent;
+        if (trim($sigValue) === '') {
             throw new Exception("Unable to locate SignatureValue");
         }
-        return $objKey->verifySignature($this->signedInfo, base64_decode($sigValue));
+        $sigValue = base64_decode($sigValue, true);
+        if ($sigValue === false) {
+            return -1;
+        }
+        return $objKey->verifySignature($this->signedInfo, $sigValue);
     }
 
     /**
@@ -982,7 +1107,7 @@ class XMLSecurityDSig
                             }
                             $subjectNameValue = implode(',', $parts);
                         } else {
-                            $subjectNameValue = $certData['issuer'];
+                            $subjectNameValue = $certData['subject'];
                         }
                         $x509SubjectNode = $baseDoc->createElementNS(self::XMLDSIGNS, $dsig_pfx.'X509SubjectName', $subjectNameValue);
                         $x509DataNode->appendChild($x509SubjectNode);
