@@ -21,6 +21,12 @@ class XMLSecEnc
     const URI = 3;
     const XMLENCNS = 'http://www.w3.org/2001/04/xmlenc#';
 
+    /**
+     * Single error for every decryption failure (padding, authentication tag, key
+     * transport or parsing), so callers cannot tell them apart (padding oracle).
+     */
+    const DECRYPT_ERROR = 'Failure decrypting Data';
+
     /** Maximum nesting of EncryptedKey / RetrievalMethod references. */
     const MAX_KEY_REFERENCE_DEPTH = 4;
 
@@ -229,7 +235,11 @@ class XMLSecEnc
 
         $encryptedData = $this->getCipherValue();
         if ($encryptedData) {
-            $decrypted = $objKey->decryptData($encryptedData);
+            try {
+                $decrypted = $objKey->decryptData($encryptedData);
+            } catch (Exception $e) {
+                throw new Exception(self::DECRYPT_ERROR);
+            }
             if ($replace) {
                 switch ($this->type) {
                     case (self::ELEMENT):
@@ -247,8 +257,8 @@ class XMLSecEnc
                             $doc = $this->rawNode->ownerDocument;
                         }
                         $newFrag = $doc->createDocumentFragment();
-                        if (! $newFrag->appendXML($decrypted)) {
-                            throw new Exception('Unable to parse decrypted content');
+                        if ($decrypted !== '' && ! self::appendDecryptedXml($newFrag, $decrypted)) {
+                            throw new Exception(self::DECRYPT_ERROR);
                         }
                         $parent = $this->rawNode->parentNode;
                         $parent->replaceChild($newFrag, $this->rawNode);
@@ -281,14 +291,31 @@ class XMLSecEnc
         } finally {
             libxml_use_internal_errors($previous);
         }
-        if (! $loaded) {
-            throw new Exception('Unable to parse decrypted XML');
-        }
-        if ($doc->doctype !== null) {
-            throw new Exception('A DOCTYPE is not allowed in decrypted XML');
+        if (! $loaded || $doc->doctype !== null) {
+            throw new Exception(self::DECRYPT_ERROR);
         }
 
         return $doc;
+    }
+
+    /**
+     * Append decrypted content to a fragment without emitting libxml warnings.
+     *
+     * @param \DOMDocumentFragment $fragment
+     * @param string $xml
+     * @return bool
+     */
+    private static function appendDecryptedXml($fragment, $xml)
+    {
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $appended = $fragment->appendXML($xml);
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previous);
+        }
+
+        return $appended;
     }
 
     /**

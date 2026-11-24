@@ -27,6 +27,10 @@ Security (see SECURITY_AUDIT.md):
 - Validate ISO 10126 padding on CBC decryption, parse decrypted XML with `LIBXML_NONET` rejecting DOCTYPE and bound
   nested `EncryptedKey`/`RetrievalMethod` references. CBC/3DES and RSA-1_5 are deprecated in favour of AES-GCM/RSA-OAEP.
 - `generateGUID()`, session keys and IVs use `random_bytes()`.
+- Every decryption failure (padding, authentication tag, key transport, parsing or DOCTYPE in the decrypted XML)
+  throws the same `Failure decrypting Data` error. `RSA_OAEP` only supports SHA-1 digest and MGF1-SHA1.
+- `SignedXml::verify()` returns `false` for malformed signatures (unknown canonicalization, several `SignedInfo`,
+  invalid certificate) and verifies a copy, so the caller's document keeps its Signature.
 
 Platform:
 - Require PHP >= 8.1 (and `ext-libxml`).

@@ -516,7 +516,11 @@ class XMLSecurityDSig
                     }
                     break;
                 default:
-                    throw new Exception("Unsupported Transform algorithm: '$algorithm'");
+                    /* Signer-supplied transforms are written as given; when
+                     * verifying, an unknown transform cannot be applied. */
+                    if (! $signing) {
+                        throw new Exception("Unsupported Transform algorithm: '$algorithm'");
+                    }
             }
         }
         if ($data instanceof DOMNode) {

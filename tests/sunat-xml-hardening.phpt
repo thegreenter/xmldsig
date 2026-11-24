@@ -59,6 +59,25 @@ $hmac = str_replace(XMLSecurityKey::RSA_SHA1, XMLSecurityKey::HMAC_SHA1, lowLeve
 echo 'hmac-sha1: ', var_export($verifier->verifyXml($hmac), true), "\n";
 $verifier->setCertificateFromFile($certPath);
 echo 'hmac-sha1 configured cert: ', var_export($verifier->verifyXml($hmac), true), "\n";
+
+// Malformed signatures return false instead of throwing.
+$signed = $signer->signXml($xml);
+$verifier = new SignedXml();
+$malformed = [
+    'unknown c14n' => str_replace('xml-exc-c14n#"', 'xml-exc-c14n#x"', $signed),
+    'two SignedInfo' => preg_replace('#(<ds:SignedInfo>.*?</ds:SignedInfo>)#s', '$1$1', $signed),
+    'bad certificate' => preg_replace('#<ds:X509Certificate>.*?</ds:X509Certificate>#s', '<ds:X509Certificate>AAAA</ds:X509Certificate>', $signed),
+];
+foreach ($malformed as $label => $content) {
+    echo $label, ': ', var_export($content !== $signed && $verifier->verifyXml($content), true), "\n";
+}
+echo 'bad certificate key: ', var_export($verifier->getPublicKey((function ($c) { $d = new DOMDocument(); $d->loadXML($c); return $d; })($malformed['bad certificate'])), true), "\n";
+
+// verify() does not remove the Signature from the caller's document.
+$doc = new DOMDocument();
+$doc->loadXML($signed);
+echo 'verify twice: ', var_export($verifier->verify($doc) && $verifier->verify($doc), true), "\n";
+echo 'signature kept: ', $doc->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'Signature')->length, "\n";
 ?>
 --EXPECT--
 empty: XML content is empty.
@@ -71,3 +90,9 @@ rsa-sha512: false
 ripemd160: false
 hmac-sha1: false
 hmac-sha1 configured cert: false
+unknown c14n: false
+two SignedInfo: false
+bad certificate: false
+bad certificate key: NULL
+verify twice: true
+signature kept: 1

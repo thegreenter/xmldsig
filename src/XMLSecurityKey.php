@@ -20,6 +20,7 @@ class XMLSecurityKey
     /** @deprecated PKCS#1 v1.5 key transport is exposed to Bleichenbacher attacks, use RSA_OAEP. */
     const RSA_1_5 = 'http://www.w3.org/2001/04/xmlenc#rsa-1_5';
     const RSA_OAEP_MGF1P = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
+    /** Only the default parameters are supported: SHA-1 digest and MGF1 with SHA-1. */
     const RSA_OAEP = 'http://www.w3.org/2009/xmlenc11#rsa-oaep';
     const DSA_SHA1 = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
     const RSA_SHA1 = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
@@ -333,7 +334,10 @@ class XMLSecurityKey
             throw new Exception('Asymmetric key material cannot be used as an HMAC key');
         }
         if ($isCert) {
-            $this->key = openssl_x509_read($this->key);
+            $this->key = @openssl_x509_read($this->key);
+            if ($this->key === false) {
+                throw new Exception('Unable to read X509 certificate');
+            }
             openssl_x509_export($this->key, $str_cert);
             $this->x509Certificate = $str_cert;
             $this->key = $str_cert;
@@ -397,7 +401,7 @@ class XMLSecurityKey
     {
         $padLen = ord(substr($data, -1));
         if ($padLen < 1 || $padLen > $this->cryptParams['blocksize'] || $padLen > strlen($data)) {
-            throw new Exception('Failure decrypting Data (openssl symmetric)');
+            throw new Exception('Failure decrypting Data');
         }
         return substr($data, 0, -$padLen);
     }
@@ -454,7 +458,7 @@ class XMLSecurityKey
         }
 
         if (false === $decrypted) {
-            throw new Exception('Failure decrypting Data (openssl symmetric) - ' . openssl_error_string());
+            throw new Exception('Failure decrypting Data');
         }
         return null !== $authTag ? $decrypted : $this->unpadISO10126($decrypted);
     }

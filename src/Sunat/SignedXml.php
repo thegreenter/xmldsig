@@ -277,15 +277,24 @@ class SignedXml
      */
     public function verify(DOMDocument $data)
     {
+        // Work on a copy: validating the references detaches the Signature node.
+        $data = clone $data;
         $objXMLSecDSig = $this->createVerifierXmlSecurityDSig();
-        $objDSig = $objXMLSecDSig->locateSignature($data);
+        $objDSig = null;
+        $objKey = null;
+        try {
+            $objDSig = $objXMLSecDSig->locateSignature($data);
+            if ($objDSig) {
+                $objXMLSecDSig->canonicalizeSignedInfo();
+                // Use the algorithm of the signature, not the one configured to sign.
+                $objKey = $objXMLSecDSig->locateKey();
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
         if (!$objDSig) {
             throw new UnexpectedValueException('Signature DOM element not found.');
         }
-        $objXMLSecDSig->canonicalizeSignedInfo();
-
-        // Use the algorithm of the signature, not the one configured to sign.
-        $objKey = $objXMLSecDSig->locateKey();
         if (!$objKey || !in_array($objKey->getAlgorithm(), static::$signatureAlgorithms, true)) {
             return false;
         }
@@ -293,7 +302,11 @@ class SignedXml
         if ($this->publicKey) {
             $objKey->loadKey($this->publicKey);
         } else {
-            XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
+            try {
+                XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
+            } catch (\Exception $e) {
+                return false;
+            }
             if (!$objKey->key) {
                 throw new RuntimeException(
                     'There is no set either private key or public key for signature verification.'
@@ -348,22 +361,25 @@ class SignedXml
      * @param DOMDocument $doc
      *
      * @return XMLSecurityKey|null
-     * @throws \Exception
      */
     protected function getKeyFromNode(DOMDocument $doc)
     {
         $objXMLSecDSig = $this->createVerifierXmlSecurityDSig();
-        $objDSig = $objXMLSecDSig->locateSignature($doc);
-        if (!$objDSig) {
+        try {
+            $objDSig = $objXMLSecDSig->locateSignature($doc);
+            if (!$objDSig) {
+                return null;
+            }
+
+            $objKey = $objXMLSecDSig->locateKey();
+            if (!$objKey || !in_array($objKey->getAlgorithm(), static::$signatureAlgorithms, true)) {
+                return null;
+            }
+
+            XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
+        } catch (\Exception $e) {
             return null;
         }
-
-        $objKey = $objXMLSecDSig->locateKey();
-        if (!$objKey || !in_array($objKey->getAlgorithm(), static::$signatureAlgorithms, true)) {
-            return null;
-        }
-
-        XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
 
         return $objKey;
     }

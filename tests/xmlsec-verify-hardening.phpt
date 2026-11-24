@@ -79,6 +79,14 @@ $unknown = str_replace(
 );
 check('unknown transform', $unknown);
 
+// Signer-supplied transforms are not restricted.
+$doc = new DOMDocument();
+$doc->loadXML('<Root><Data>signed</Data></Root>');
+$dsig = new XMLSecurityDSig();
+$dsig->setCanonicalMethod(XMLSecurityDSig::C14N);
+$dsig->addReference($doc, XMLSecurityDSig::SHA256, ['urn:custom-transform']);
+echo 'sign with custom transform: ', strpos($dsig->sigNode->ownerDocument->saveXML(), 'urn:custom-transform') !== false ? 'ok' : 'missing', "\n";
+
 // Algorithm allowlists.
 $sha512 = signDoc('<Root><Data>signed</Data></Root>', $enveloped, false, XMLSecurityDSig::SHA512);
 check('digest allowed', $sha512);
@@ -116,6 +124,7 @@ external uri: Reference URI must be a same-document reference
 xpath transform: XPath Transforms are not allowed during verification
 xpath transform allowed: 1
 unknown transform: Unsupported Transform algorithm: 'urn:unknown'
+sign with custom transform: ok
 digest allowed: 1
 digest not allowed: DigestMethod algorithm is not allowed: 'http://www.w3.org/2001/04/xmlenc#sha512'
 signature not allowed: SignatureMethod algorithm is not allowed: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'

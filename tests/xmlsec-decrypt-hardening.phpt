@@ -1,5 +1,5 @@
 --TEST--
-Decryption hardening: CBC padding, decrypted DOCTYPE and nested key references
+Decryption hardening: uniform errors, empty content, CBC padding, decrypted DOCTYPE and nested key references
 --FILE--
 <?php
 require(dirname(__FILE__) . '/../xmlseclibs.php');
@@ -36,6 +36,8 @@ function encryptDecrypt($payload, $type, $tamper = null)
 }
 
 echo 'element: ', encryptDecrypt('<a>b</a>', XMLSecEnc::ELEMENT), "\n";
+echo 'empty content: ', encryptDecrypt('', XMLSecEnc::CONTENT), "\n";
+echo 'invalid content: ', encryptDecrypt('<a>', XMLSecEnc::CONTENT), "\n";
 echo 'doctype: ', encryptDecrypt('<!DOCTYPE a [<!ENTITY e "x">]><a>&e;</a>', XMLSecEnc::ELEMENT), "\n";
 echo 'invalid: ', encryptDecrypt('<a>', XMLSecEnc::ELEMENT), "\n";
 echo 'bad padding: ', encryptDecrypt('<a>b</a>', XMLSecEnc::ELEMENT, function ($raw) {
@@ -60,7 +62,9 @@ try {
 ?>
 --EXPECT--
 element: ok
-doctype: A DOCTYPE is not allowed in decrypted XML
-invalid: Unable to parse decrypted XML
-bad padding: Failure decrypting Data (openssl symmetric)
+empty content: ok
+invalid content: Failure decrypting Data
+doctype: Failure decrypting Data
+invalid: Failure decrypting Data
+bad padding: Failure decrypting Data
 recursion: Too many nested EncryptedKey references
