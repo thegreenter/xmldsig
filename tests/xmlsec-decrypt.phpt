@@ -16,7 +16,8 @@ function locateLocalKey($objKey) {
 	}
 }
 
-$arTests = array('AOESP_SHA1'=>'oaep_sha1-res.xml');
+$arTests = array('AOESP_SHA1'=>'oaep_sha1-res.xml', 'AES128-GCM'=>'aes128-gcm-res.xml',
+	'AES192-GCM'=>'aes192-gcm-res.xml', 'AES256-GCM'=>'aes256-gcm-res.xml');
 
 $doc = new DOMDocument();
 
@@ -89,3 +90,6 @@ foreach ($arTests AS $testName=>$testFile) {
 ?>
 --EXPECTF--
 AOESP_SHA1: Passed
+AES128-GCM: Passed
+AES192-GCM: Passed
+AES256-GCM: Passed
